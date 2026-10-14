@@ -1,0 +1,8 @@
+{
+  "name": "Remix OpenToSeeYourFuture - Intuitive Tarot by Neha Arora",
+  "description": "Editorial, mystical tarot readings and sacred goods curated by Neha Arora. Intuitive spreads for love, life and purpose.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
