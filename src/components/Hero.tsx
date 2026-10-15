@@ -40,7 +40,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartReading, onExploreShop }) => 
     <section
       id="hero"
       onMouseMove={handleMouseMove}
-      className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-12 pb-20 bg-grain"
+      className="cosmic-shell relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-12 pb-20 bg-grain"
     >
       {/* Ambient background glow & subtle decorative circles */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#C4A484]/10 rounded-full blur-3xl pointer-events-none -z-10" />
@@ -54,21 +54,21 @@ export const Hero: React.FC<HeroProps> = ({ onStartReading, onExploreShop }) => 
           <div className="lg:col-span-7 text-center lg:text-left space-y-6">
             
             {/* Editorial Kicker */}
-            <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#8E8271]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#A98765]" />
+            <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#a8a9bf]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e6b967]" />
               <span>Sanctuary of Intuition & Archetypes</span>
               <span>·</span>
-              <span className="text-[#1A1A1A] font-medium">Curated by Neha Arora</span>
+              <span className="text-[#f5f0e7] font-medium">Curated by Neha Arora</span>
             </div>
 
             {/* Big Serif Heading: 80px */}
-            <h1 className="font-serif text-5xl sm:text-7xl lg:text-[84px] leading-[1.02] tracking-tight text-[#1A1A1A] text-balance">
+            <h1 className="font-serif text-5xl sm:text-7xl lg:text-[84px] leading-[1.02] tracking-tight text-[#f5f0e7] text-balance">
               Open to See <br className="hidden sm:inline" />
-              <span className="italic font-normal text-[#A98765]">Your Future.</span>
+              <span className="italic font-normal text-[#e6b967]">Your Future.</span>
             </h1>
 
             {/* Subtext */}
-            <p className="text-base sm:text-lg text-[#1A1A1A]/75 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
+            <p className="text-base sm:text-lg text-[#f5f0e7]/75 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
               Intuitive tarot readings for love, life & purpose. Grounded sacred mirrors translated into profound, modern clarity without sensationalism or superstition.
             </p>
 
@@ -79,7 +79,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartReading, onExploreShop }) => 
                   playChimeSound();
                   onStartReading();
                 }}
-                className="w-full sm:w-auto px-8 py-4 bg-[#1A1A1A] text-[#F5F1EB] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#A98765] transition-all duration-300 rounded-sm shadow-md hover:shadow-xl flex items-center justify-center gap-3 cursor-pointer group"
+                className="w-full sm:w-auto px-8 py-4 bg-[#f5f0e7] text-[#F5F1EB] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#e6b967] transition-all duration-300 rounded-sm shadow-md hover:shadow-xl flex items-center justify-center gap-3 cursor-pointer group"
               >
                 <span>Get Your Reading</span>
                 <Sparkles className="w-4 h-4 text-[#C4A484] group-hover:rotate-12 transition-transform" />
@@ -87,26 +87,26 @@ export const Hero: React.FC<HeroProps> = ({ onStartReading, onExploreShop }) => 
 
               <button
                 onClick={onExploreShop}
-                className="w-full sm:w-auto px-8 py-4 border border-[#1A1A1A]/30 text-[#1A1A1A] text-xs uppercase tracking-[0.2em] font-medium hover:border-[#1A1A1A] hover:bg-[#1A1A1A]/5 transition-all duration-300 rounded-sm cursor-pointer"
+                className="w-full sm:w-auto px-8 py-4 border border-[#f5f0e7]/30 text-[#f5f0e7] text-xs uppercase tracking-[0.2em] font-medium hover:border-[#f5f0e7] hover:bg-[#f5f0e7]/5 transition-all duration-300 rounded-sm cursor-pointer"
               >
                 Explore Sacred Shop
               </button>
             </div>
 
             {/* Quiet trust markers */}
-            <div className="pt-6 border-t border-[#E6E0D6]/80 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-[#8E8271]">
+            <div className="pt-6 border-t border-[#E6E0D6]/80 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-[#a8a9bf]">
               <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#A98765]" />
+                <ShieldCheck className="w-4 h-4 text-[#e6b967]" />
                 <span>Zero Judgment Sacred Space</span>
               </div>
               <span>·</span>
               <div className="flex items-center gap-1.5">
-                <Heart className="w-4 h-4 text-[#A98765]" />
+                <Heart className="w-4 h-4 text-[#e6b967]" />
                 <span>12,000+ Seekers Guided</span>
               </div>
               <span>·</span>
               <div className="flex items-center gap-1.5">
-                <Moon className="w-4 h-4 text-[#A98765]" />
+                <Moon className="w-4 h-4 text-[#e6b967]" />
                 <span>High-Resonance Modern Archetypes</span>
               </div>
             </div>
@@ -118,8 +118,12 @@ export const Hero: React.FC<HeroProps> = ({ onStartReading, onExploreShop }) => 
               onMouseEnter={handleShuffleHover}
               className="relative w-[320px] sm:w-[380px] h-[440px] flex items-center justify-center cursor-pointer group"
             >
+              <div className="brand-orb cosmic-glow absolute inset-10 overflow-hidden rounded-full border border-[#e6b967]/35 opacity-70">
+                <img src="/oracle-logo.png" alt="Mystic oracle holding a crystal ball" className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,transparent_26%,rgba(8,9,20,.82)_78%)]" />
+              </div>
               {/* Hint badge */}
-              <div className="absolute -top-6 text-[10px] tracking-widest uppercase text-[#8E8271] opacity-75 group-hover:opacity-100 transition-opacity">
+              <div className="absolute -top-6 text-[10px] tracking-widest uppercase text-[#a8a9bf] opacity-75 group-hover:opacity-100 transition-opacity">
                 Hover to shuffle & align
               </div>
 
@@ -184,10 +188,10 @@ export const Hero: React.FC<HeroProps> = ({ onStartReading, onExploreShop }) => 
 
             {/* Sub-caption under cards */}
             <div className="mt-8 text-center">
-              <p className="text-xs uppercase tracking-widest text-[#8E8271]">
+              <p className="text-xs uppercase tracking-widest text-[#a8a9bf]">
                 Interactive Portal
               </p>
-              <p className="font-serif italic text-sm text-[#1A1A1A]">
+              <p className="font-serif italic text-sm text-[#f5f0e7]">
                 The cards shuffle as your heart settles.
               </p>
             </div>
@@ -199,10 +203,10 @@ export const Hero: React.FC<HeroProps> = ({ onStartReading, onExploreShop }) => 
         <div className="mt-14 flex justify-center">
           <button
             onClick={onStartReading}
-            className="flex flex-col items-center gap-2 text-[10px] tracking-widest uppercase text-[#8E8271] hover:text-[#1A1A1A] transition-colors cursor-pointer group"
+            className="flex flex-col items-center gap-2 text-[10px] tracking-widest uppercase text-[#a8a9bf] hover:text-[#f5f0e7] transition-colors cursor-pointer group"
           >
             <span>Begin Consultation</span>
-            <ArrowDown className="w-3.5 h-3.5 text-[#A98765] group-hover:translate-y-1 transition-transform" />
+            <ArrowDown className="w-3.5 h-3.5 text-[#e6b967] group-hover:translate-y-1 transition-transform" />
           </button>
         </div>
 

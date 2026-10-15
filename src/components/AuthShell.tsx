@@ -9,7 +9,7 @@ interface AuthShellProps {
 }
 
 export const AuthShell = ({ eyebrow, title, description, children }: AuthShellProps) => (
-  <main className="flex min-h-screen items-center justify-center bg-[#f3eee5] px-4 py-10 text-[#28251f]">
+  <main className="cosmic-shell relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10 text-[#f5f0e7]">
     <div className="w-full max-w-md">
       <Link
         to="/"
@@ -17,7 +17,7 @@ export const AuthShell = ({ eyebrow, title, description, children }: AuthShellPr
       >
         Back to the studio
       </Link>
-      <section className="border border-[#ded5c8] bg-[#fbf8f1] p-6 shadow-sm sm:p-9">
+      <section className="cosmic-glow rounded-2xl border border-[#e6b967]/25 bg-[#111326]/90 p-6 shadow-2xl backdrop-blur-xl sm:p-9">
         <span className="shop-kicker">{eyebrow}</span>
         <h1 className="mt-3 font-serif text-4xl leading-tight sm:text-5xl">{title}</h1>
         <p className="mt-3 text-sm leading-6 text-[#746d61]">{description}</p>

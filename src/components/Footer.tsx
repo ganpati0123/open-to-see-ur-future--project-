@@ -40,9 +40,12 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
           
           {/* Manifesto Left */}
           <div className="lg:col-span-6 space-y-5">
-            <span className="font-serif text-3xl sm:text-4xl text-[#F5F1EB] tracking-tight block">
-              openToSeeYourFuture<span className="text-[#C4A484]">.</span>
-            </span>
+            <div className="flex items-center gap-3">
+              <img src="/oracle-logo.png" alt="" className="h-12 w-12 rounded-full border border-[#e6b967]/40 object-cover" />
+              <span className="font-serif text-3xl sm:text-4xl text-[#F5F1EB] tracking-tight block">
+                openToSeeYourFuture<span className="text-[#C4A484]">.</span>
+              </span>
+            </div>
             <p className="text-sm text-[#F5F1EB]/70 leading-relaxed font-light max-w-lg">
               A high-vibrational sanctuary for modern seekers, founded by Neha Arora. Grounded in archetypal depth psychology, sacred symbology, and intuitive clarity for love, career & spiritual alignment.
             </p>

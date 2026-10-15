@@ -57,10 +57,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     setMobileShopOpen(false);
   };
 
-  const navButtonClass = 'relative cursor-pointer py-2 text-[10px] font-medium uppercase tracking-[.17em] text-[#514d45] transition-colors hover:text-[#8d6d4e] after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[#b69570] after:transition-all after:duration-300 hover:after:w-full';
+  const navButtonClass = 'relative cursor-pointer py-2 text-[10px] font-medium uppercase tracking-[.17em] text-[#c7c8d8] transition-colors hover:text-[#8d6d4e] after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[#b69570] after:transition-all after:duration-300 hover:after:w-full';
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#ded5c8]/80 bg-[#f3eee5]/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full border-b border-[#e6b967]/20 bg-[#080914]/85 backdrop-blur-xl">
       <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
         <button
           type="button"
@@ -68,8 +68,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="group shrink-0 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8d6d4e]"
           aria-label="Open to See Your Future home"
         >
-          <span className="font-serif text-[1.42rem] tracking-[-.035em] text-[#28251f] transition-colors group-hover:text-[#8d6d4e] sm:text-[1.65rem]">
-            openToSeeYourFuture<span className="text-[#b69570]">.</span>
+          <span className="flex items-center gap-2.5">
+            <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-[#e6b967]/60 bg-[#090a16] shadow-[0_0_24px_rgba(111,72,200,.35)]">
+              <img src="/oracle-logo.png" alt="" className="h-full w-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-110" />
+            </span>
+            <span className="font-serif text-[1.28rem] tracking-[-.035em] text-[#f5f0e7] transition-colors group-hover:text-[#e6b967] sm:text-[1.5rem]">
+              openToSeeYourFuture<span className="text-[#e6b967]">.</span>
+            </span>
           </span>
         </button>
 
@@ -92,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <ChevronDown className={`h-3 w-3 transition-transform ${shopMenuOpen ? 'rotate-180' : ''}`} />
             </button>
             {shopMenuOpen && (
-              <div className="absolute left-1/2 top-full mt-4 w-64 -translate-x-1/2 border border-[#ded5c8] bg-[#fbf8f1] p-2 shadow-[0_18px_45px_rgba(45,38,29,.14)]">
+              <div className="absolute left-1/2 top-full mt-4 w-64 -translate-x-1/2 border border-[#ded5c8] bg-[#111326] p-2 shadow-[0_18px_45px_rgba(45,38,29,.14)]">
                 <button
                   type="button"
                   onClick={() => handleNavClick('shop')}
@@ -108,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       type="button"
                       key={category.id}
                       onClick={() => handleNavClick(category.id)}
-                      className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs text-[#514d45] transition-colors hover:bg-[#f0e9de] hover:text-[#8d6d4e]"
+                      className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs text-[#c7c8d8] transition-colors hover:bg-[#f0e9de] hover:text-[#8d6d4e]"
                     >
                       {category.label}
                       <span className="text-[10px] text-[#9b907f]">
@@ -149,14 +154,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             to="/login"
             aria-label="Sign in or open your dashboard"
             title="Your account"
-            className="rounded-full p-2.5 text-[#28251f] transition-colors hover:bg-[#e8dfd2] hover:text-[#8d6d4e]"
+            className="rounded-full p-2.5 text-[#f5f0e7] transition-colors hover:bg-[#e8dfd2] hover:text-[#8d6d4e]"
           >
             <UserRound className="h-[19px] w-[19px]" strokeWidth={1.55} />
           </Link>
           <button
             type="button"
             onClick={() => handleNavClick('readings')}
-            className="hidden items-center gap-2 border border-[#b69570] px-3 py-2 text-[9px] uppercase tracking-[.14em] text-[#514d45] transition-colors hover:bg-[#b69570] hover:text-[#fbf8f1] xl:inline-flex"
+            className="hidden items-center gap-2 border border-[#b69570] px-3 py-2 text-[9px] uppercase tracking-[.14em] text-[#c7c8d8] transition-colors hover:bg-[#b69570] hover:text-[#fbf8f1] xl:inline-flex"
           >
             <Sparkles className="h-3.5 w-3.5" />
             Draw cards
@@ -164,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             type="button"
             onClick={onOpenCart}
-            className="relative rounded-full p-2.5 text-[#28251f] transition-colors hover:bg-[#e8dfd2] hover:text-[#8d6d4e]"
+            className="relative rounded-full p-2.5 text-[#f5f0e7] transition-colors hover:bg-[#e8dfd2] hover:text-[#8d6d4e]"
             aria-label={`Open shopping bag${cartCount > 0 ? `, ${cartCount} items` : ''}`}
           >
             <ShoppingBag className="h-[19px] w-[19px]" strokeWidth={1.55} />
@@ -177,7 +182,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             type="button"
             onClick={() => setMobileMenuOpen((open) => !open)}
-            className="rounded-full p-2 text-[#28251f] transition-colors hover:bg-[#e8dfd2] lg:hidden"
+            className="rounded-full p-2 text-[#f5f0e7] transition-colors hover:bg-[#e8dfd2] lg:hidden"
             aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={mobileMenuOpen}
           >
@@ -189,15 +194,15 @@ export const Navbar: React.FC<NavbarProps> = ({
       {mobileMenuOpen && (
         <div className="border-t border-[#ded5c8] bg-[#f7f2e9] px-5 pb-6 pt-4 shadow-[0_18px_32px_rgba(45,38,29,.12)] lg:hidden">
           <nav aria-label="Mobile navigation" className="mx-auto flex max-w-2xl flex-col">
-            <button type="button" onClick={() => handleNavClick('readings')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]">Interactive readings</button>
-            <button type="button" onClick={() => handleNavClick('spreads')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]">Choose a spread</button>
+            <button type="button" onClick={() => handleNavClick('readings')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#c7c8d8]">Interactive readings</button>
+            <button type="button" onClick={() => handleNavClick('spreads')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#c7c8d8]">Choose a spread</button>
             <button
               type="button"
               onClick={() => {
                 onNavigate('shop');
                 setMobileShopOpen((open) => !open);
               }}
-              className="flex items-center justify-between border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]"
+              className="flex items-center justify-between border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#c7c8d8]"
               aria-expanded={mobileShopOpen}
             >
               Sacred shop
@@ -217,7 +222,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     type="button"
                     key={category.id}
                     onClick={() => handleNavClick(category.id)}
-                    className="py-2.5 text-left text-xs text-[#514d45] transition-colors hover:text-[#8d6d4e]"
+                    className="py-2.5 text-left text-xs text-[#c7c8d8] transition-colors hover:text-[#8d6d4e]"
                   >
                     {category.label}
                   </button>
@@ -231,16 +236,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setMobileShopOpen(false);
                 onOpenBookSession();
               }}
-              className="flex items-center justify-between border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]"
+              className="flex items-center justify-between border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#c7c8d8]"
             >
               Book a session
               <Calendar className="h-4 w-4 text-[#8d6d4e]" />
             </button>
-            <button type="button" onClick={() => handleNavClick('journal')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]">Editorial journal</button>
+            <button type="button" onClick={() => handleNavClick('journal')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#c7c8d8]">Editorial journal</button>
             <Link
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]"
+              className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#c7c8d8]"
             >
               Sign in or open your dashboard
             </Link>
