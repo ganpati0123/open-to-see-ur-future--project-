@@ -51,13 +51,13 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
             </p>
             <div className="flex flex-wrap items-center gap-4 text-xs text-[#C4A484] tracking-widest uppercase">
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/opentoseeyourfuture"
                 target="_blank"
                 rel="noreferrer"
                 className="hover:underline flex items-center gap-1 text-[#F5F1EB]"
               >
                 <Instagram className="w-3.5 h-3.5" />
-                <span>@vanikabirstudio aesthetic</span>
+                <span>Open To See Your Future on Instagram</span>
               </a>
               <span>·</span>
               <button
