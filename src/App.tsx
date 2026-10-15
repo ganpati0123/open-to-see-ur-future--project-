@@ -5,7 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { TAROT_SPREADS, TarotSpread } from './data/tarotData';
-import { PRODUCT_CATEGORIES, Product } from './data/productsData';
+import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from './data/productsData';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { HowItWorks } from './components/HowItWorks';
@@ -18,6 +18,7 @@ import { Footer } from './components/Footer';
 import { CartDrawer, CartItem } from './components/CartDrawer';
 import { BookSessionModal } from './components/BookSessionModal';
 import { WhatsAppShareWidget } from './components/WhatsAppShareWidget';
+import { ProductDetailPage } from './components/ProductDetailPage';
 
 const categoryFromPath = (pathname: string): string | null => {
   const match = pathname.match(/^\/shop\/([^/]+)\/?$/);
@@ -25,8 +26,15 @@ const categoryFromPath = (pathname: string): string | null => {
   return PRODUCT_CATEGORIES.some((category) => category.id === match[1]) ? match[1] : null;
 };
 
+const productFromPath = (pathname: string): string | null => {
+  const match = pathname.match(/^\/product\/([^/]+)\/?$/);
+  if (!match) return null;
+  return PRODUCTS_DATA.some((product) => product.id === match[1]) ? match[1] : null;
+};
+
 export default function App() {
   const [categoryId, setCategoryId] = useState<string | null>(() => categoryFromPath(window.location.pathname));
+  const [productId, setProductId] = useState<string | null>(() => productFromPath(window.location.pathname));
 
   // Selected Spread for reading
   const [selectedSpread, setSelectedSpread] = useState<TarotSpread>(TAROT_SPREADS[1]); // Past, Present, Future default
@@ -44,6 +52,7 @@ export default function App() {
   useEffect(() => {
     const syncRoute = () => {
       setCategoryId(categoryFromPath(window.location.pathname));
+      setProductId(productFromPath(window.location.pathname));
       window.scrollTo({ top: 0, behavior: 'auto' });
     };
     window.addEventListener('popstate', syncRoute);
@@ -51,15 +60,16 @@ export default function App() {
   }, []);
 
   // Cart operations
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: Product, quantity = 1) => {
+    const requestedQuantity = Math.max(1, Math.floor(quantity));
     setCartItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
       if (existing) {
         return prev.map((i) =>
-          i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
+          i.product.id === product.id ? { ...i, quantity: i.quantity + requestedQuantity } : i
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, quantity: requestedQuantity }];
     });
     setIsCartOpen(true);
   };
@@ -93,14 +103,16 @@ export default function App() {
       const targetPath = `/shop/${sectionId}`;
       if (window.location.pathname !== targetPath) window.history.pushState(null, '', targetPath);
       setCategoryId(sectionId);
+      setProductId(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     const targetPath = '/';
     if (window.location.pathname !== targetPath) window.history.pushState(null, '', targetPath);
-    if (categoryId) {
+    if (categoryId || productId) {
       setCategoryId(null);
+      setProductId(null);
       window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => {
           document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -113,6 +125,14 @@ export default function App() {
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  };
+
+  const handleOpenProduct = (selectedProductId: string) => {
+    const targetPath = `/product/${selectedProductId}`;
+    if (window.location.pathname !== targetPath) window.history.pushState(null, '', targetPath);
+    setCategoryId(null);
+    setProductId(selectedProductId);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSelectCategory = (selectedCategoryId: string | null) => {
@@ -139,11 +159,20 @@ export default function App() {
       />
 
       <main className="flex-1">
-        {categoryId ? (
+        {productId ? (
+          <ProductDetailPage
+            key={productId}
+            product={PRODUCTS_DATA.find((product) => product.id === productId)!}
+            onAddToCart={handleAddToCart}
+            onOpenProduct={handleOpenProduct}
+            onNavigate={handleNavigate}
+          />
+        ) : categoryId ? (
           <ShopSection
             categoryId={categoryId}
             onSelectCategory={handleSelectCategory}
             onAddToCart={handleAddToCart}
+            onOpenProduct={handleOpenProduct}
           />
         ) : (
           <>
@@ -172,6 +201,7 @@ export default function App() {
             {/* 5. Boutique landing and all available collections */}
             <ShopSection
               onAddToCart={handleAddToCart}
+              onOpenProduct={handleOpenProduct}
               categoryId={null}
               onSelectCategory={handleSelectCategory}
             />

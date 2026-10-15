@@ -6,12 +6,14 @@ import { playChimeSound } from '../utils/audio';
 
 interface ShopSectionProps {
   onAddToCart: (product: Product) => void;
+  onOpenProduct: (productId: string) => void;
   categoryId?: string | null;
   onSelectCategory: (categoryId: string | null) => void;
 }
 
 export const ShopSection: React.FC<ShopSectionProps> = ({
   onAddToCart,
+  onOpenProduct,
   categoryId = null,
   onSelectCategory,
 }) => {
@@ -202,7 +204,13 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
                       )}
                     </div>
                     <h3 className="font-serif text-[1.55rem] leading-[1.06] text-[#28251f] transition-colors group-hover:text-[#8d6d4e]">
-                      {product.name}
+                      <button
+                        type="button"
+                        onClick={() => onOpenProduct(product.id)}
+                        className="text-left transition-colors hover:text-[#8d6d4e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8d6d4e]"
+                      >
+                        {product.name}
+                      </button>
                     </h3>
                     <p className="mt-2 line-clamp-3 flex-1 text-xs leading-5 text-[#746d61]">{product.description}</p>
                     <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#ded5c8]/80 pt-4">
@@ -301,6 +309,16 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
                     </ul>
                   </div>
                 )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenProduct(quickViewProduct.id);
+                    setQuickViewProduct(null);
+                  }}
+                  className="mt-7 flex min-h-11 w-full items-center justify-center border border-[#b9a58a] px-4 text-xs uppercase tracking-[.14em] text-[#514a3f] transition-colors hover:bg-[#eee7dc]"
+                >
+                  Full product details
+                </button>
                 <button
                   type="button"
                   disabled={!quickViewProduct.inStock}
