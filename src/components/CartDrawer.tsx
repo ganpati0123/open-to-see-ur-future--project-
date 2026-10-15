@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product } from '../data/productsData';
-import { X, Trash2, Plus, Minus, ArrowRight, CheckCircle, ShieldCheck } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ArrowRight, CheckCircle, MessageCircle, ShieldCheck } from 'lucide-react';
 import { playChimeSound } from '../utils/audio';
 import { formatCurrency } from '../utils/money';
+import { getCartWhatsAppUrl } from '../utils/whatsapp';
 
 export interface CartItem {
   product: Product;
@@ -275,6 +276,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </button>
                   </form>
                 )}
+
+                <a
+                  href={getCartWhatsAppUrl(items)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Send your shopping bag to WhatsApp"
+                  className="w-full py-3.5 bg-[#27745b] text-white text-xs uppercase tracking-[0.16em] font-medium hover:bg-[#1f604b] transition-colors rounded-sm flex items-center justify-center gap-2 shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#27745b]"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Send Bag on WhatsApp</span>
+                </a>
 
                 <div className="flex items-center justify-center gap-2 text-[10px] text-[#8E8271]">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#A98765]" />
