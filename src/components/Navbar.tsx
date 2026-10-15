@@ -6,10 +6,12 @@ import {
   MessageCircle,
   ShoppingBag,
   Sparkles,
+  UserRound,
   Volume2,
   VolumeX,
   X,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { PRODUCT_CATEGORIES, PRODUCTS_DATA } from '../data/productsData';
 import { playChimeSound } from '../utils/audio';
 
@@ -143,6 +145,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4 text-[#999080]" />}
           </button>
+          <Link
+            to="/login"
+            aria-label="Sign in or open your dashboard"
+            title="Your account"
+            className="rounded-full p-2.5 text-[#28251f] transition-colors hover:bg-[#e8dfd2] hover:text-[#8d6d4e]"
+          >
+            <UserRound className="h-[19px] w-[19px]" strokeWidth={1.55} />
+          </Link>
           <button
             type="button"
             onClick={() => handleNavClick('readings')}
@@ -227,6 +237,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Calendar className="h-4 w-4 text-[#8d6d4e]" />
             </button>
             <button type="button" onClick={() => handleNavClick('journal')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]">Editorial journal</button>
+            <Link
+              to="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]"
+            >
+              Sign in or open your dashboard
+            </Link>
           </nav>
           <div className="mx-auto mt-4 flex max-w-2xl gap-3">
             <button

@@ -1,0 +1,419 @@
+Bhai, ab hum tumhari existing React + Vite website “OPEN TO SEE UR FUTURE” mein complete Firebase Authentication setup karenge. Tumhe nayi website banane ki zarurat nahi hai—apne current project mein hi files add karni hain.
+Hum ye features implement karenge:
+- Email/password se Signup aur Login
+- Google account se Login
+- Logout
+- Login ke baad protected Dashboard
+- Refresh karne par login session maintain
+- Login na hone par protected page se Login page par redirect
+Firebase ke official SDK mein ye features createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider aur onAuthStateChanged se implement hote hain. 
+
+Firebase
++1
+
+
+
+Step 1 — Apna project VS Code mein kholo
+
+
+
+
+
+
+
+
+
+1. VS Code open karo.
+2. File → Open Folder par click karo.
+3. Apni existing React + Vite website ka folder select karo.
+
+
+
+4. VS Code mein Terminal → New Terminal kholo aur ye command chalao:
+npm install firebase react-router-dom
+
+
+Ye Firebase SDK aur pages ke beech navigation ke liye React Router install karega.
+
+Step 2 — Firebase configuration file banao
+VS Code ke Explorer mein src folder par right-click karo → New File → firebase.js.
+Is code ko paste karo:
+
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCRimlOlIPBIphZSb5UxuVn3TA_atQVVf0",
+  authDomain: "open-to-see-ur-future.firebaseapp.com",
+  projectId: "open-to-see-ur-future",
+  storageBucket: "open-to-see-ur-future.firebasestorage.app",
+  messagingSenderId: "216092307343",
+  appId: "1:216092307343:web:749e6d0d9ee0818a24e5fa",
+  measurementId: "G-46Y5MMVGB0",
+};
+
+const app = initializeApp(firebaseConfig);
+
+export const auth = getAuth(app);
+export default app;
+
+
+
+Ye tumhare Firebase project ko React application se connect karega. Abhi Analytics initialize karna zaroori nahi hai.
+Step 3 — Login state poori website mein available karao
+src ke andar context naam ka folder banao. Uske andar AuthContext.jsx file banao.
+
+import { createContext, useContext, useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase";
+
+const AuthContext = createContext();
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
+
+
+
+Isse app Firebase se confirm karega ki user logged in hai ya nahi. Page reload hone par bhi authentication state check hogi. 
+
+Firebase
+
+
+
+Step 4 — Protected pages ka system banao
+src/components/ProtectedRoute.jsx file banao. Agar components folder nahi hai, toh pehle create kar lo.
+
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+export default function ProtectedRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <p>Checking login...</p>;
+  }
+
+  return user ? <Outlet /> : <Navigate to="/login" replace />;
+}
+
+
+
+Ab jo bhi page is route ke andar hoga, use sirf logged-in user access kar payega.
+Step 5 — Signup page banao
+src/pages/Signup.jsx file banao. pages folder nahi hai toh pehle create karo.
+
+import { useState } from "react";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../firebase";
+import { Link, useNavigate } from "react-router-dom";
+
+export default function Signup() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
+
+  async function handleSignup(e) {
+    e.preventDefault();
+    setError("");
+    setBusy(true);
+
+    try {
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      if (name.trim()) {
+        await updateProfile(result.user, {
+          displayName: name.trim(),
+        });
+      }
+
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <main>
+      <h1>Create your account</h1>
+      <form onSubmit={handleSignup}>
+        <input
+          placeholder="Full name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <input
+          type="email"
+          placeholder="Email address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password (at least 6 characters)"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          minLength={6}
+          required
+        />
+        {error && <p role="alert">{error}</p>}
+        <button disabled={busy}>
+          {busy ? "Creating account..." : "Sign Up"}
+        </button>
+      </form>
+      <p>
+        Already registered? <Link to="/login">Login</Link>
+      </p>
+    </main>
+  );
+}
+
+
+
+Ye form Firebase mein account create karega. Signup successful hone ke baad user Dashboard par chala jayega.
+Step 6 — Login + Google Login page banao
+src/pages/Login.jsx file mein ye code paste karo.
+
+import { useState } from "react";
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { auth } from "../firebase";
+import { Link, useNavigate } from "react-router-dom";
+
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    setError("");
+    setBusy(true);
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    setError("");
+    setBusy(true);
+
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <main>
+      <h1>Welcome Back</h1>
+
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="Email address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button disabled={busy}>
+          {busy ? "Please wait..." : "Login"}
+        </button>
+      </form>
+
+      <p>OR</p>
+
+      <button type="button" disabled={busy} onClick={handleGoogleLogin}>
+        Continue with Google
+      </button>
+
+      {error && <p role="alert">{error}</p>}
+
+      <p>
+        New here? <Link to="/signup">Create account</Link>
+      </p>
+    </main>
+  );
+}
+
+
+
+Google sign-in ke liye Firebase ka GoogleAuthProvider aur signInWithPopup use ho raha hai. 
+
+Firebase
+
+
+
+Step 7 — Dashboard aur Logout banao
+src/pages/Dashboard.jsx file create karo.
+
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
+export default function Dashboard() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+      navigate("/login", { replace: true });
+    } catch (error) {
+      alert(error.message);
+    }
+  }
+
+  return (
+    <main>
+      <h1>OPEN TO SEE UR FUTURE</h1>
+      <h2>Welcome, {user?.displayName || "User"}!</h2>
+      <p>Email: {user?.email}</p>
+      <p>Your account is logged in successfully.</p>
+      <button onClick={handleLogout}>Logout</button>
+    </main>
+  );
+}
+
+
+
+Step 8 — Saare routes connect karo
+Ab src/App.jsx kholo aur agar tum abhi default Vite starter app use kar rahe ho, toh uska code replace karke ye paste karo.
+
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
+
+function PublicOnly({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <p>Loading...</p>;
+  return user ? <Navigate to="/dashboard" replace /> : children;
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          <PublicOnly>
+            <Login />
+          </PublicOnly>
+        }
+      />
+
+      <Route
+        path="/signup"
+        element={
+          <PublicOnly>
+            <Signup />
+          </PublicOnly>
+        }
+      />
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+
+
+Important: Agar tumhari existing website mein pehle se homepage aur doosre routes hain, toh unhe delete mat karna. Un routes ko bhi isi routing setup mein preserve karna hoga.
+Step 9 — Main file check karo
+src/main.jsx mein ensure karo ki App render ho raha hai. Normally Vite mein ye pehle se hota hai:
+
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App.jsx";
+import "./index.css";
+
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+
+
+
+Agar tumhari existing main.jsx mein additional providers ya setup hai, use preserve karna.
+Step 10 — Website run karke test karo
+VS Code terminal mein run karo:
+npm run dev
+
+
+Terminal mein jo local URL mile, use browser mein kholo—usually http://localhost:5173.
