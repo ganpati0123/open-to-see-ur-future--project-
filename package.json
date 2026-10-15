@@ -17,10 +17,12 @@
     "@vitejs/plugin-react": "^6.1.2",
     "dotenv": "^17.4.2",
     "express": "^4.22.3",
+    "firebase": "^13.0.0",
     "lucide-react": "^0.546.0",
     "motion": "^12.43.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.4",
     "vite": "^8.3.4"
   },
   "devDependencies": {

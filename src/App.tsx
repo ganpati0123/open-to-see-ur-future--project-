@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { TAROT_SPREADS, TarotSpread } from './data/tarotData';
 import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from './data/productsData';
 import { Navbar } from './components/Navbar';
@@ -19,6 +20,12 @@ import { CartDrawer, CartItem } from './components/CartDrawer';
 import { BookSessionModal } from './components/BookSessionModal';
 import { WhatsAppShareWidget } from './components/WhatsAppShareWidget';
 import { ProductDetailPage } from './components/ProductDetailPage';
+import { AuthLoading } from './components/AuthShell';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { DashboardPage } from './pages/DashboardPage';
+import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
 
 const categoryFromPath = (pathname: string): string | null => {
   const match = pathname.match(/^\/shop\/([^/]+)\/?$/);
@@ -32,9 +39,11 @@ const productFromPath = (pathname: string): string | null => {
   return PRODUCTS_DATA.some((product) => product.id === match[1]) ? match[1] : null;
 };
 
-export default function App() {
-  const [categoryId, setCategoryId] = useState<string | null>(() => categoryFromPath(window.location.pathname));
-  const [productId, setProductId] = useState<string | null>(() => productFromPath(window.location.pathname));
+function ExistingWebsite() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const categoryId = categoryFromPath(location.pathname);
+  const productId = productFromPath(location.pathname);
 
   // Selected Spread for reading
   const [selectedSpread, setSelectedSpread] = useState<TarotSpread>(TAROT_SPREADS[1]); // Past, Present, Future default
@@ -50,13 +59,9 @@ export default function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
-    const syncRoute = () => {
-      setCategoryId(categoryFromPath(window.location.pathname));
-      setProductId(productFromPath(window.location.pathname));
-      window.scrollTo({ top: 0, behavior: 'auto' });
-    };
-    window.addEventListener('popstate', syncRoute);
-    return () => window.removeEventListener('popstate', syncRoute);
+    const restoreScroll = () => window.scrollTo({ top: 0, behavior: 'auto' });
+    window.addEventListener('popstate', restoreScroll);
+    return () => window.removeEventListener('popstate', restoreScroll);
   }, []);
 
   // Cart operations
@@ -101,18 +106,14 @@ export default function App() {
     const isCategory = PRODUCT_CATEGORIES.some((category) => category.id === sectionId);
     if (isCategory) {
       const targetPath = `/shop/${sectionId}`;
-      if (window.location.pathname !== targetPath) window.history.pushState(null, '', targetPath);
-      setCategoryId(sectionId);
-      setProductId(null);
+      if (location.pathname !== targetPath) navigate(targetPath);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     const targetPath = '/';
-    if (window.location.pathname !== targetPath) window.history.pushState(null, '', targetPath);
+    if (location.pathname !== targetPath) navigate(targetPath);
     if (categoryId || productId) {
-      setCategoryId(null);
-      setProductId(null);
       window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => {
           document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -129,9 +130,7 @@ export default function App() {
 
   const handleOpenProduct = (selectedProductId: string) => {
     const targetPath = `/product/${selectedProductId}`;
-    if (window.location.pathname !== targetPath) window.history.pushState(null, '', targetPath);
-    setCategoryId(null);
-    setProductId(selectedProductId);
+    if (location.pathname !== targetPath) navigate(targetPath);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -240,5 +239,32 @@ export default function App() {
       {/* Floating WhatsApp Share Pill & Modal */}
       <WhatsAppShareWidget />
     </div>
+  );
+}
+
+const PublicOnly = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <AuthLoading />;
+  return user ? <Navigate to="/dashboard" replace /> : children;
+};
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
+    <Route path="/signup" element={<PublicOnly><SignupPage /></PublicOnly>} />
+    <Route element={<ProtectedRoute />}>
+      <Route path="/dashboard" element={<DashboardPage />} />
+    </Route>
+    <Route path="*" element={<ExistingWebsite />} />
+  </Routes>
+);
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
