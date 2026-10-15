@@ -2,12 +2,12 @@ import { getApp, getApps, initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
+  apiKey: import.meta.env.apiKey as string,
+  authDomain: 'open-to-see-ur-future.firebaseapp.com',
+  projectId: 'open-to-see-ur-future',
+  storageBucket: 'open-to-see-ur-future.firebasestorage.app',
+  messagingSenderId: '216092307343',
+  appId: '1:216092307343:web:749e6d0d9ee0818a24e5fa',
 };
 
 const missingConfig = Object.entries(firebaseConfig)
