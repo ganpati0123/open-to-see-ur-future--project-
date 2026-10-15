@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  MessageCircle,
   Minus,
   Plus,
   ShoppingBag,
@@ -11,6 +12,7 @@ import {
 import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from '../data/productsData';
 import { PRODUCT_DETAIL_CONTENT } from '../data/productDetailContent';
 import { formatCurrency } from '../utils/money';
+import { getProductWhatsAppUrl } from '../utils/whatsapp';
 import { ProductReviews } from './ProductReviews';
 
 interface ProductDetailPageProps {
@@ -201,17 +203,29 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     </button>
                   </div>
                   <span className="text-[10px] text-[#817766]">Qty</span>
-                  <button
-                    type="button"
-                    onClick={() => onAddToCart(product, quantity)}
-                    disabled={!product.inStock}
-                    className="flex min-h-12 flex-1 items-center justify-center gap-2 bg-[#302d27] px-4 text-[10px] font-semibold uppercase tracking-[.13em] text-[#f7f1e7] transition-colors hover:bg-[#8d6d4e] disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-48"
-                  >
-                    <ShoppingBag className="h-4 w-4" />
-                    {product.inStock
-                      ? `Add to bag · ${formatCurrency(product.price * quantity, product.currency)}`
-                      : 'Unavailable'}
-                  </button>
+                  <div className="grid flex-1 gap-2 sm:min-w-48 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => onAddToCart(product, quantity)}
+                      disabled={!product.inStock}
+                      className="flex min-h-12 items-center justify-center gap-2 bg-[#302d27] px-3 text-[9px] font-semibold uppercase tracking-[.09em] text-[#f7f1e7] transition-colors hover:bg-[#8d6d4e] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      {product.inStock
+                        ? `Add to bag · ${formatCurrency(product.price * quantity, product.currency)}`
+                        : 'Unavailable'}
+                    </button>
+                    <a
+                      href={getProductWhatsAppUrl(product, quantity)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Ask about ${product.name} on WhatsApp`}
+                      className="flex min-h-12 items-center justify-center gap-2 bg-[#27745b] px-3 text-[9px] font-semibold uppercase tracking-[.09em] text-white transition-colors hover:bg-[#1f604b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#27745b]"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      WhatsApp
+                    </a>
+                  </div>
                 </div>
                 <p className="mt-3 text-[10px] leading-5 text-[#817766]">
                   Your bag keeps INR and USD items in separate totals. Checkout is currently a demo and does not process payments.
@@ -376,10 +390,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
               {relatedProducts.map((relatedProduct) => (
-                <button
+                <a
                   key={relatedProduct.id}
-                  type="button"
-                  onClick={() => onOpenProduct(relatedProduct.id)}
+                  href={getProductWhatsAppUrl(relatedProduct)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Ask about ${relatedProduct.name} on WhatsApp`}
                   className="group min-w-0 text-left"
                 >
                   <div className="relative aspect-square overflow-hidden border border-[#ded5c8] bg-[#e7dfd2]">
@@ -396,7 +412,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <span className="mt-1 block font-mono text-xs tabular-nums text-[#625b50]">
                     {formatCurrency(relatedProduct.price, relatedProduct.currency)}
                   </span>
-                </button>
+                </a>
               ))}
             </div>
           </section>

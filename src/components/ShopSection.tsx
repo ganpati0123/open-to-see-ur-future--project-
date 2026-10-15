@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Check, ChevronRight, Eye, ShoppingBag, Star, X } from 'lucide-react';
+import { Check, ChevronRight, Eye, MessageCircle, ShoppingBag, Star, X } from 'lucide-react';
 import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from '../data/productsData';
 import { formatCurrency } from '../utils/money';
+import { getProductWhatsAppUrl } from '../utils/whatsapp';
 import { playChimeSound } from '../utils/audio';
 
 interface ShopSectionProps {
@@ -172,20 +173,28 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
                     <div className="absolute inset-0 flex items-center justify-center p-5 text-center font-serif text-xl text-[#8d7355]/70" aria-hidden="true">
                       {product.name}
                     </div>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      loading="lazy"
-                      className="shop-product-image relative h-full w-full object-cover"
-                      onError={(event) => { event.currentTarget.style.display = 'none'; }}
-                    />
-                    <span className="absolute left-3 top-3 border border-white/60 bg-[#fbf8f1]/90 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[.14em] text-[#494239] backdrop-blur-sm">
+                    <a
+                      href={getProductWhatsAppUrl(product)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Ask about ${product.name} on WhatsApp`}
+                      className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#8d6d4e]"
+                    >
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        loading="lazy"
+                        className="shop-product-image relative h-full w-full object-cover"
+                        onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                      />
+                    </a>
+                    <span className="absolute left-3 top-3 z-20 border border-white/60 bg-[#fbf8f1]/90 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[.14em] text-[#494239] backdrop-blur-sm">
                       {product.tag}
                     </span>
                     <button
                       type="button"
                       onClick={() => setQuickViewProduct(product)}
-                      className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-[#fbf8f1]/95 text-[#28251f] opacity-100 shadow-sm transition hover:bg-[#28251f] hover:text-[#fbf8f1] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                      className="absolute bottom-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-[#fbf8f1]/95 text-[#28251f] opacity-100 shadow-sm transition hover:bg-[#28251f] hover:text-[#fbf8f1] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
                       aria-label={`Quick view ${product.name}`}
                     >
                       <Eye className="h-4 w-4" strokeWidth={1.6} />
@@ -204,32 +213,46 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
                       )}
                     </div>
                     <h3 className="font-serif text-[1.55rem] leading-[1.06] text-[#28251f] transition-colors group-hover:text-[#8d6d4e]">
-                      <button
-                        type="button"
-                        onClick={() => onOpenProduct(product.id)}
+                      <a
+                        href={getProductWhatsAppUrl(product)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Ask about ${product.name} on WhatsApp`}
                         className="text-left transition-colors hover:text-[#8d6d4e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8d6d4e]"
                       >
                         {product.name}
-                      </button>
+                      </a>
                     </h3>
                     <p className="mt-2 line-clamp-3 flex-1 text-xs leading-5 text-[#746d61]">{product.description}</p>
-                    <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#ded5c8]/80 pt-4">
+                    <div className="mt-5 border-t border-[#ded5c8]/80 pt-4">
                       <span className="font-mono text-sm tabular-nums text-[#28251f]">
                         {formatCurrency(product.price, product.currency)}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => handleAdd(product)}
-                        disabled={!product.inStock}
-                        className={`inline-flex min-h-10 items-center justify-center gap-2 px-3 text-[10px] font-medium uppercase tracking-[.12em] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                          isRecentlyAdded
-                            ? 'bg-[#65705b] text-[#fffaf1]'
-                            : 'bg-[#302d27] text-[#f7f1e7] hover:bg-[#8d6d4e]'
-                        }`}
-                      >
-                        {isRecentlyAdded ? <Check className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
-                        <span>{isRecentlyAdded ? 'Added' : product.inStock ? 'Add to bag' : 'Sold out'}</span>
-                      </button>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleAdd(product)}
+                          disabled={!product.inStock}
+                          className={`inline-flex min-h-10 items-center justify-center gap-1.5 px-2 text-[9px] font-medium uppercase tracking-[.08em] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                            isRecentlyAdded
+                              ? 'bg-[#65705b] text-[#fffaf1]'
+                              : 'bg-[#302d27] text-[#f7f1e7] hover:bg-[#8d6d4e]'
+                          }`}
+                        >
+                          {isRecentlyAdded ? <Check className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
+                          <span>{isRecentlyAdded ? 'Added' : product.inStock ? 'Add to bag' : 'Sold out'}</span>
+                        </button>
+                        <a
+                          href={getProductWhatsAppUrl(product)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Ask about ${product.name} on WhatsApp`}
+                          className="inline-flex min-h-10 items-center justify-center gap-1.5 bg-[#27745b] px-2 text-[9px] font-medium uppercase tracking-[.08em] text-white transition-colors hover:bg-[#1f604b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#27745b]"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </article>
@@ -319,18 +342,30 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
                 >
                   Full product details
                 </button>
-                <button
-                  type="button"
-                  disabled={!quickViewProduct.inStock}
-                  onClick={() => {
-                    handleAdd(quickViewProduct);
-                    setQuickViewProduct(null);
-                  }}
-                  className="mt-7 flex min-h-12 w-full items-center justify-center gap-2 bg-[#302d27] px-4 text-xs uppercase tracking-[.14em] text-[#f7f1e7] transition hover:bg-[#8d6d4e] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <ShoppingBag className="h-4 w-4" />
-                  {quickViewProduct.inStock ? `Add to bag · ${formatCurrency(quickViewProduct.price, quickViewProduct.currency)}` : 'Sold out'}
-                </button>
+                <div className="mt-7 grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    disabled={!quickViewProduct.inStock}
+                    onClick={() => {
+                      handleAdd(quickViewProduct);
+                      setQuickViewProduct(null);
+                    }}
+                    className="flex min-h-12 items-center justify-center gap-2 bg-[#302d27] px-4 text-[10px] uppercase tracking-[.1em] text-[#f7f1e7] transition hover:bg-[#8d6d4e] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                    {quickViewProduct.inStock ? `Add to bag · ${formatCurrency(quickViewProduct.price, quickViewProduct.currency)}` : 'Sold out'}
+                  </button>
+                  <a
+                    href={getProductWhatsAppUrl(quickViewProduct)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Ask about ${quickViewProduct.name} on WhatsApp`}
+                    className="flex min-h-12 items-center justify-center gap-2 bg-[#27745b] px-4 text-[10px] uppercase tracking-[.1em] text-white transition hover:bg-[#1f604b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#27745b]"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    WhatsApp to order
+                  </a>
+                </div>
               </div>
             </div>
           </div>
