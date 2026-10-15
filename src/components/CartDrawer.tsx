@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Product } from '../data/productsData';
 import { X, Trash2, Plus, Minus, ArrowRight, CheckCircle, ShieldCheck } from 'lucide-react';
 import { playChimeSound } from '../utils/audio';
+import { formatCurrency } from '../utils/money';
 
 export interface CartItem {
   product: Product;
@@ -29,9 +30,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
 
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const freeShippingThreshold = 75;
-  const progressToFreeShipping = Math.min(100, (subtotal / freeShippingThreshold) * 100);
+  const totalsByCurrency = items.reduce<Record<'USD' | 'INR', number>>(
+    (totals, item) => {
+      const currency = item.product.currency ?? 'USD';
+      totals[currency] += item.product.price * item.quantity;
+      return totals;
+    },
+    { USD: 0, INR: 0 },
+  );
+  const usdShippingThreshold = 75;
+  const usdShipping = totalsByCurrency.USD >= usdShippingThreshold ? 0 : 6.5;
+  const usdShippingProgress = Math.min(100, (totalsByCurrency.USD / usdShippingThreshold) * 100);
+  const orderTotals = (['INR', 'USD'] as const)
+    .filter((currency) => totalsByCurrency[currency] > 0)
+    .map((currency) => ({
+      currency,
+      subtotal: totalsByCurrency[currency],
+      total: totalsByCurrency[currency] + (currency === 'USD' ? usdShipping : 0),
+    }));
+  const orderTotalLabel = orderTotals
+    .map(({ currency, total }) => formatCurrency(total, currency))
+    .join(' · ');
 
   const handleCheckoutSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,23 +101,33 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </button>
               </div>
 
-              {/* Free Shipping Progress bar */}
-              <div className="p-3 bg-[#FCFAF7] rounded-lg border border-[#E6E0D6] mb-6">
-                <div className="flex items-center justify-between text-[11px] text-[#8E8271] mb-1.5">
-                  {subtotal >= freeShippingThreshold ? (
-                    <span className="text-[#A98765] font-medium">✦ Complimentary Studio Shipping Unlocked!</span>
-                  ) : (
-                    <span>Add ${(freeShippingThreshold - subtotal).toFixed(2)} more for complimentary shipping</span>
+              {totalsByCurrency.USD > 0 && (
+                <div className="p-3 bg-[#FCFAF7] rounded-lg border border-[#E6E0D6] mb-6">
+                  <div className="flex items-center justify-between text-[11px] text-[#8E8271] mb-1.5">
+                    {totalsByCurrency.USD >= usdShippingThreshold ? (
+                      <span className="text-[#A98765] font-medium">Complimentary shipping unlocked</span>
+                    ) : (
+                      <span>Add {formatCurrency(usdShippingThreshold - totalsByCurrency.USD, 'USD')} more for complimentary shipping</span>
+                    )}
+                    <span className="font-mono tabular-nums">{Math.round(usdShippingProgress)}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-[#E6E0D6] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#A98765] transition-all duration-300"
+                      style={{ width: `${usdShippingProgress}%` }}
+                    />
+                  </div>
+                  {totalsByCurrency.INR > 0 && (
+                    <p className="mt-2 text-[10px] text-[#8E8271]">Shipping for INR orders is calculated at checkout.</p>
                   )}
-                  <span className="font-mono tabular-nums">{Math.round(progressToFreeShipping)}%</span>
                 </div>
-                <div className="w-full h-1.5 bg-[#E6E0D6] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#A98765] transition-all duration-300"
-                    style={{ width: `${progressToFreeShipping}%` }}
-                  />
-                </div>
-              </div>
+              )}
+
+              {totalsByCurrency.USD === 0 && totalsByCurrency.INR > 0 && (
+                <p className="mb-6 rounded-lg border border-[#E6E0D6] bg-[#FCFAF7] p-3 text-[11px] text-[#8E8271]">
+                  Shipping for INR orders is calculated at checkout.
+                </p>
+              )}
 
               {/* Itemized List */}
               {items.length === 0 ? (
@@ -106,7 +135,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span className="font-serif text-3xl text-[#C4A484] block">✦</span>
                   <p className="font-serif text-xl text-[#1A1A1A]">Your shopping bag is quiet.</p>
                   <p className="text-xs text-[#8E8271] font-light max-w-xs mx-auto">
-                    Explore our boutique intention candles, crystals, or personalized digital readings.
+                    Explore zodiac bracelets, crystal pieces, and personalized digital readings.
                   </p>
                   <button
                     onClick={onClose}
@@ -132,7 +161,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                       <div className="flex-1 min-w-0">
                         <h4 className="font-serif text-sm text-[#1A1A1A] truncate">{item.product.name}</h4>
-                        <span className="text-xs font-mono text-[#8E8271] tabular-nums">${item.product.price} each</span>
+                        <span className="text-xs font-mono text-[#8E8271] tabular-nums">
+                          {formatCurrency(item.product.price, item.product.currency)} each
+                        </span>
                         <div className="flex items-center gap-2 mt-1">
                           <button
                             onClick={() => onUpdateQuantity(item.product.id, -1)}
@@ -152,7 +183,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                       <div className="text-right">
                         <span className="font-mono text-sm font-medium text-[#1A1A1A] tabular-nums">
-                          ${item.product.price * item.quantity}
+                          {formatCurrency(item.product.price * item.quantity, item.product.currency)}
                         </span>
                         <button
                           onClick={() => onRemoveItem(item.product.id)}
@@ -171,15 +202,33 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             {/* Bottom Actions & Checkout */}
             {items.length > 0 && (
               <div className="pt-6 border-t border-[#E6E0D6] space-y-4">
-                <div className="space-y-1.5 text-xs text-[#8E8271]">
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span className="font-mono text-sm text-[#1A1A1A] font-medium tabular-nums">${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Studio Shipping</span>
-                    <span>{subtotal >= freeShippingThreshold ? 'Complimentary' : '$6.50'}</span>
-                  </div>
+                <div className="space-y-2 text-xs text-[#8E8271]">
+                  {orderTotals.map(({ currency, subtotal, total }) => (
+                    <div key={currency} className="space-y-1">
+                      <div className="flex justify-between">
+                        <span>Subtotal · {currency}</span>
+                        <span className="font-mono text-sm text-[#1A1A1A] font-medium tabular-nums">
+                          {formatCurrency(subtotal, currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Studio shipping · {currency}</span>
+                        <span>
+                          {currency === 'INR'
+                            ? 'Calculated at checkout'
+                            : usdShipping === 0
+                              ? 'Complimentary'
+                              : formatCurrency(usdShipping, 'USD')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-t border-[#E6E0D6] pt-1.5">
+                        <span>Total · {currency}</span>
+                        <span className="font-mono text-sm text-[#1A1A1A] font-medium tabular-nums">
+                          {formatCurrency(total, currency)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 {!isCheckingOut ? (
@@ -200,14 +249,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         type="text"
                         required
                         placeholder="Recipient Name"
-                        defaultValue="Neha's Seeker"
                         className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
                       />
                       <input
                         type="text"
                         required
-                        placeholder="Shipping Address / Country"
-                        defaultValue="742 Evergreen Terrace, Brooklyn NY"
+                        placeholder="Shipping address"
                         className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
                       />
                     </div>
@@ -223,7 +270,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           <span>Order Confirmed!</span>
                         </>
                       ) : (
-                        <span>Place Sacred Order (${(subtotal + (subtotal >= freeShippingThreshold ? 0 : 6.5)).toFixed(2)})</span>
+                        <span>Place Order · {orderTotalLabel}</span>
                       )}
                     </button>
                   </form>

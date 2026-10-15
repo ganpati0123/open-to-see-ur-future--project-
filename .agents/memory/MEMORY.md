@@ -1,0 +1,1 @@
+- [Mixed-currency cart totals](mixed-currency-cart.md) — Keep INR and legacy USD subtotals separate; do not imply an exchange rate.

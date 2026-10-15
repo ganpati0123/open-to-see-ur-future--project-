@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TAROT_SPREADS, TarotSpread } from './data/tarotData';
-import { Product } from './data/productsData';
+import { PRODUCT_CATEGORIES, Product } from './data/productsData';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { HowItWorks } from './components/HowItWorks';
@@ -19,30 +19,20 @@ import { CartDrawer, CartItem } from './components/CartDrawer';
 import { BookSessionModal } from './components/BookSessionModal';
 import { WhatsAppShareWidget } from './components/WhatsAppShareWidget';
 
+const categoryFromPath = (pathname: string): string | null => {
+  const match = pathname.match(/^\/shop\/([^/]+)\/?$/);
+  if (!match) return null;
+  return PRODUCT_CATEGORIES.some((category) => category.id === match[1]) ? match[1] : null;
+};
+
 export default function App() {
+  const [categoryId, setCategoryId] = useState<string | null>(() => categoryFromPath(window.location.pathname));
+
   // Selected Spread for reading
   const [selectedSpread, setSelectedSpread] = useState<TarotSpread>(TAROT_SPREADS[1]); // Past, Present, Future default
   
   // Shopping Cart State
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    // Initial delightful seed item
-    {
-      product: {
-        id: 'intention-candle',
-        name: 'Intention Candle',
-        price: 38,
-        category: 'Ritual Goods',
-        tag: 'Hand-Poured',
-        rating: 4.9,
-        reviewsCount: 142,
-        description: 'Natural coconut-soy wax infused with wild vetiver and clear quartz crystals.',
-        details: ['100% Organic Coconut Soy', '55+ Hour Burn Time'],
-        image: '/src/assets/images/boutique_ritual_candle_1790673095609.jpg',
-        inStock: true
-      },
-      quantity: 1
-    }
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   // Book 1:1 Session Modal State
@@ -50,6 +40,15 @@ export default function App() {
 
   // Audio ambient sound state
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    const syncRoute = () => {
+      setCategoryId(categoryFromPath(window.location.pathname));
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+    window.addEventListener('popstate', syncRoute);
+    return () => window.removeEventListener('popstate', syncRoute);
+  }, []);
 
   // Cart operations
   const handleAddToCart = (product: Product) => {
@@ -87,12 +86,37 @@ export default function App() {
     setCartItems([]);
   };
 
-  // Smooth navigation handler
+  // Small history-based router keeps collection URLs shareable without replacing the existing experience.
   const handleNavigate = (sectionId: string) => {
+    const isCategory = PRODUCT_CATEGORIES.some((category) => category.id === sectionId);
+    if (isCategory) {
+      const targetPath = `/shop/${sectionId}`;
+      if (window.location.pathname !== targetPath) window.history.pushState(null, '', targetPath);
+      setCategoryId(sectionId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const targetPath = '/';
+    if (window.location.pathname !== targetPath) window.history.pushState(null, '', targetPath);
+    if (categoryId) {
+      setCategoryId(null);
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+      return;
+    }
+
     const el = document.getElementById(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  };
+
+  const handleSelectCategory = (selectedCategoryId: string | null) => {
+    handleNavigate(selectedCategoryId ?? 'shop');
   };
 
   const handleSelectSpreadAndScroll = (spread: TarotSpread) => {
@@ -115,36 +139,50 @@ export default function App() {
       />
 
       <main className="flex-1">
-        {/* 1. Hero Section with 3 floating tarot cards */}
-        <Hero
-          onStartReading={() => handleNavigate('readings')}
-          onExploreShop={() => handleNavigate('shop')}
-        />
+        {categoryId ? (
+          <ShopSection
+            categoryId={categoryId}
+            onSelectCategory={handleSelectCategory}
+            onAddToCart={handleAddToCart}
+          />
+        ) : (
+          <>
+            {/* 1. Hero Section with 3 floating tarot cards */}
+            <Hero
+              onStartReading={() => handleNavigate('readings')}
+              onExploreShop={() => handleNavigate('shop')}
+            />
 
-        {/* 2. How It Works (3 columns) */}
-        <HowItWorks />
+            {/* 2. How It Works (3 columns) */}
+            <HowItWorks />
 
-        {/* 3. Choose Your Spread Section */}
-        <ChooseSpread
-          onSelectSpread={handleSelectSpreadAndScroll}
-          selectedSpreadId={selectedSpread.id}
-        />
+            {/* 3. Choose Your Spread Section */}
+            <ChooseSpread
+              onSelectSpread={handleSelectSpreadAndScroll}
+              selectedSpreadId={selectedSpread.id}
+            />
 
-        {/* 4. Interactive Tarot Reading Experience (Main) */}
-        <InteractiveReading
-          currentSpread={selectedSpread}
-          onChangeSpread={(sp) => setSelectedSpread(sp)}
-          onBookSession={() => setIsBookSessionOpen(true)}
-        />
+            {/* 4. Interactive Tarot Reading Experience (Main) */}
+            <InteractiveReading
+              currentSpread={selectedSpread}
+              onChangeSpread={(sp) => setSelectedSpread(sp)}
+              onBookSession={() => setIsBookSessionOpen(true)}
+            />
 
-        {/* 5. Shop Section (Grid of 8 products) */}
-        <ShopSection onAddToCart={handleAddToCart} />
+            {/* 5. Boutique landing and all available collections */}
+            <ShopSection
+              onAddToCart={handleAddToCart}
+              categoryId={null}
+              onSelectCategory={handleSelectCategory}
+            />
 
-        {/* 6. Testimonials Minimal Carousel */}
-        <Testimonials />
+            {/* 6. Testimonials Minimal Carousel */}
+            <Testimonials />
 
-        {/* 7. Journal Section */}
-        <JournalSection />
+            {/* 7. Journal Section */}
+            <JournalSection />
+          </>
+        )}
       </main>
 
       {/* 8. Editorial Footer */}

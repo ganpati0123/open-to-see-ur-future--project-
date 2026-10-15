@@ -1,232 +1,318 @@
-import React, { useState } from 'react';
-import { PRODUCTS_DATA, Product } from '../data/productsData';
-import { ShoppingBag, Star, Sparkles, Check, Eye, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Check, ChevronRight, Eye, ShoppingBag, Star, X } from 'lucide-react';
+import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from '../data/productsData';
+import { formatCurrency } from '../utils/money';
 import { playChimeSound } from '../utils/audio';
 
 interface ShopSectionProps {
   onAddToCart: (product: Product) => void;
+  categoryId?: string | null;
+  onSelectCategory: (categoryId: string | null) => void;
 }
 
-export const ShopSection: React.FC<ShopSectionProps> = ({ onAddToCart }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+export const ShopSection: React.FC<ShopSectionProps> = ({
+  onAddToCart,
+  categoryId = null,
+  onSelectCategory,
+}) => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const selectedCategory = PRODUCT_CATEGORIES.find((category) => category.id === categoryId);
+  const categoryProducts = selectedCategory
+    ? PRODUCTS_DATA.filter((product) => product.category === selectedCategory.label)
+    : PRODUCTS_DATA;
+  const categoriesWithProducts = PRODUCT_CATEGORIES
+    .map((category) => ({
+      ...category,
+      products: PRODUCTS_DATA.filter((product) => product.category === category.label),
+    }))
+    .filter((category) => category.products.length > 0);
 
-  const categories = ['All', 'Ritual Goods', 'Digital Readings', 'Sessions'];
-
-  const filteredProducts = selectedCategory === 'All'
-    ? PRODUCTS_DATA
-    : PRODUCTS_DATA.filter((p) => p.category === selectedCategory);
+  useEffect(() => {
+    if (!quickViewProduct) return;
+    const previousOverflow = document.body.style.overflow;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setQuickViewProduct(null);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [quickViewProduct]);
 
   const handleAdd = (product: Product) => {
     playChimeSound();
     onAddToCart(product);
-    setAddedIds((prev) => new Set(prev).add(product.id));
-    setTimeout(() => {
-      setAddedIds((prev) => {
-        const next = new Set(prev);
+    setAddedIds((previous) => new Set(previous).add(product.id));
+    window.setTimeout(() => {
+      setAddedIds((previous) => {
+        const next = new Set(previous);
         next.delete(product.id);
         return next;
       });
-    }, 1500);
+    }, 1400);
   };
 
-  return (
-    <section id="shop" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-[#E6E0D6]">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-        <div>
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#8E8271] mb-2">
-            <span>Apothecary & Sacred Tools</span>
-            <span>·</span>
-            <span className="text-[#A98765]">Hand-Crafted Intention</span>
-          </div>
-          <h2 className="font-serif text-3xl sm:text-5xl text-[#1A1A1A] tracking-tight">
-            The Studio Boutique
-          </h2>
-          <p className="text-sm text-[#1A1A1A]/70 font-light mt-1 max-w-xl">
-            Consecrated talismans, ritual goods, and private digital consultations curated by Neha Arora to ground your energetic field.
-          </p>
-        </div>
+  const title = selectedCategory?.label ?? 'The Studio Boutique';
 
-        {/* Category Filters */}
-        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-[#FAF7F2] rounded-lg border border-[#E6E0D6]">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer whitespace-nowrap ${
-                selectedCategory === cat
-                  ? 'bg-[#1A1A1A] text-[#F5F1EB] shadow-xs'
-                  : 'text-[#8E8271] hover:text-[#1A1A1A]'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+  return (
+    <section id="shop" className="shop-shell scroll-mt-20">
+      <div className="shop-intro">
+        <div className="shop-intro-inner mx-auto max-w-7xl px-5 pb-12 pt-12 sm:px-8 sm:pb-16 sm:pt-16 lg:px-10 lg:pb-20 lg:pt-20">
+          <div className="grid items-end gap-8 lg:grid-cols-[1fr_300px]">
+            <div>
+              <div className="shop-kicker mb-5 flex items-center gap-3">
+                <span>Open to see your future</span>
+                <span aria-hidden="true" className="h-px w-8 bg-[#b69570]" />
+                <span>{selectedCategory ? 'The collection' : 'Objects for your practice'}</span>
+              </div>
+              <h1 className="shop-title">
+                {selectedCategory ? (
+                  <>{selectedCategory.label}</>
+                ) : (
+                  <>Find a little <em>meaning</em> in the everyday.</>
+                )}
+              </h1>
+              <p className="mt-6 max-w-xl text-sm leading-7 text-[#5f594f] sm:text-base">
+                {selectedCategory
+                  ? `A considered selection of ${selectedCategory.label.toLowerCase()}, chosen to bring a thoughtful pause to your space and practice.`
+                  : 'Intuitive readings, considered crystals, and small ritual objects chosen to make room for clarity, steadiness, and wonder.'}
+              </p>
+            </div>
+            <div className="hidden border-l border-[#b9a58a]/50 pl-6 pb-1 lg:block">
+              <span className="shop-kicker">A note from the studio</span>
+              <p className="mt-3 font-serif text-2xl leading-tight text-[#494239]">
+                “Keep close what helps you listen.”
+              </p>
+              <p className="mt-3 text-[10px] uppercase tracking-[.18em] text-[#817766]">Neha Arora · Curator</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Grid of 8 Products */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-        {filteredProducts.map((product) => {
-          const isRecentlyAdded = addedIds.has(product.id);
-
-          return (
-            <div
-              key={product.id}
-              className="group rounded-xl bg-[#FCFAF7] border border-[#E6E0D6] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg"
-            >
-              {/* Product Image Box */}
-              <div className="relative aspect-4/3 w-full bg-[#F5F1EB] overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  onError={(e) => {
-                    // Fallback to stylized SVG placeholder container if network image fails
-                    e.currentTarget.style.display = 'none';
-                    const parent = e.currentTarget.parentElement;
-                    if (parent) {
-                      parent.innerHTML = `
-                        <div class="w-full h-full flex flex-col items-center justify-center bg-[#FAF7F2] text-[#A98765] p-4 text-center">
-                          <span class="text-2xl font-serif">✦</span>
-                          <span class="text-xs uppercase tracking-widest mt-2">${product.name}</span>
-                        </div>
-                      `;
-                    }
-                  }}
-                />
-
-                {/* Tag overlay */}
-                <div className="absolute top-3 left-3">
-                  <span className="text-[10px] tracking-wider uppercase font-medium bg-[#FCFAF7]/90 backdrop-blur-xs text-[#1A1A1A] px-2.5 py-1 rounded-sm border border-[#E6E0D6]/60">
-                    {product.tag}
-                  </span>
-                </div>
-
-                {/* Quick View Button on Hover */}
-                <button
-                  onClick={() => setQuickViewProduct(product)}
-                  className="absolute bottom-3 right-3 p-2 bg-[#FCFAF7]/95 text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-[#F5F1EB] rounded-full shadow-md transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                  title="Quick View Details"
-                  aria-label="Quick View"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
+      <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-16 lg:px-10 lg:py-20">
+        {!selectedCategory && (
+          <div className="mb-16 sm:mb-20">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <span className="shop-kicker">Browse by feeling</span>
+                <h2 className="mt-2 font-serif text-3xl sm:text-4xl">Explore the collections</h2>
               </div>
-
-              {/* Product Content */}
-              <div className="p-5 flex flex-col flex-1 justify-between space-y-4">
-                <div>
-                  <div className="flex items-center justify-between text-xs text-[#8E8271] mb-1">
-                    <span className="text-[10px] uppercase tracking-wider">{product.category}</span>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-[#C4A484] text-[#C4A484]" />
-                      <span className="tabular-nums font-mono text-[11px] text-[#1A1A1A]">{product.rating}</span>
-                      <span className="text-[10px]">({product.reviewsCount})</span>
+              <span className="text-xs text-[#777064]">{categoriesWithProducts.length} collections</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+              {categoriesWithProducts.map((category) => {
+                const firstProduct = category.products[0];
+                return (
+                  <button
+                    type="button"
+                    key={category.id}
+                    onClick={() => onSelectCategory(category.id)}
+                    className="shop-category-tile group cursor-pointer text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8d6d4e]"
+                    aria-label={`Browse ${category.label}`}
+                  >
+                    <div className="absolute inset-0 bg-[#ddd4c5]" aria-hidden="true">
+                      <span className="absolute inset-0 flex items-center justify-center px-3 text-center font-serif text-xl text-[#8d7355]/70">
+                        {category.label}
+                      </span>
+                      <img
+                        src={firstProduct.image}
+                        alt=""
+                        loading="lazy"
+                        className="shop-category-image absolute inset-0 h-full w-full object-cover"
+                        onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                      />
                     </div>
+                    <div className="absolute inset-x-0 bottom-0 z-10 p-3 text-[#fffaf1] sm:p-4">
+                      <span className="mb-1 block text-[9px] uppercase tracking-[.18em] text-white/75">
+                        {category.products.length} {category.products.length === 1 ? 'piece' : 'pieces'}
+                      </span>
+                      <span className="flex items-end justify-between gap-2 font-serif text-lg leading-tight sm:text-xl">
+                        <span>{category.label}</span>
+                        <ChevronRight className="mb-0.5 h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="mb-7 flex flex-wrap items-end justify-between gap-4 border-b border-[#ded5c8] pb-5">
+          <div>
+            <span className="shop-kicker">{selectedCategory ? 'Selected for you' : 'From the studio'}</span>
+            <h2 className="mt-1 font-serif text-3xl sm:text-4xl">{selectedCategory ? title : 'Shop all'}</h2>
+          </div>
+          <div className="flex items-center gap-4">
+            {selectedCategory && (
+              <button
+                type="button"
+                onClick={() => onSelectCategory(null)}
+                className="text-xs uppercase tracking-[.13em] text-[#777064] underline decoration-[#b69570] underline-offset-4 transition-colors hover:text-[#28251f]"
+              >
+                All collections
+              </button>
+            )}
+            <span className="text-xs tabular-nums text-[#777064]">{categoryProducts.length} items</span>
+          </div>
+        </div>
+
+        {categoryProducts.length > 0 ? (
+          <div className="grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {categoryProducts.map((product) => {
+              const isRecentlyAdded = addedIds.has(product.id);
+              return (
+                <article key={product.id} className="shop-product-card group flex min-w-0 flex-col">
+                  <div className="relative aspect-[4/4.5] overflow-hidden bg-[#e7dfd2]">
+                    <div className="absolute inset-0 flex items-center justify-center p-5 text-center font-serif text-xl text-[#8d7355]/70" aria-hidden="true">
+                      {product.name}
+                    </div>
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      loading="lazy"
+                      className="shop-product-image relative h-full w-full object-cover"
+                      onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                    />
+                    <span className="absolute left-3 top-3 border border-white/60 bg-[#fbf8f1]/90 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[.14em] text-[#494239] backdrop-blur-sm">
+                      {product.tag}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setQuickViewProduct(product)}
+                      className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-[#fbf8f1]/95 text-[#28251f] opacity-100 shadow-sm transition hover:bg-[#28251f] hover:text-[#fbf8f1] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                      aria-label={`Quick view ${product.name}`}
+                    >
+                      <Eye className="h-4 w-4" strokeWidth={1.6} />
+                    </button>
                   </div>
 
-                  <h3 className="font-serif text-xl text-[#1A1A1A] group-hover:text-[#A98765] transition-colors leading-snug">
-                    {product.name}
-                  </h3>
+                  <div className="flex flex-1 flex-col p-4 sm:p-5">
+                    <div className="mb-2 flex min-h-4 items-center justify-between gap-3">
+                      <span className="text-[9px] uppercase tracking-[.15em] text-[#8a806f]">{product.category}</span>
+                      {product.reviewsCount > 0 && (
+                        <span className="flex shrink-0 items-center gap-1 text-[10px] text-[#6e665a]" aria-label={`${product.rating} out of 5, ${product.reviewsCount} reviews`}>
+                          <Star className="h-3 w-3 fill-[#b69570] text-[#b69570]" />
+                          <span>{product.rating}</span>
+                          <span className="text-[#999080]">({product.reviewsCount})</span>
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-serif text-[1.55rem] leading-[1.06] text-[#28251f] transition-colors group-hover:text-[#8d6d4e]">
+                      {product.name}
+                    </h3>
+                    <p className="mt-2 line-clamp-3 flex-1 text-xs leading-5 text-[#746d61]">{product.description}</p>
+                    <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#ded5c8]/80 pt-4">
+                      <span className="font-mono text-sm tabular-nums text-[#28251f]">
+                        {formatCurrency(product.price, product.currency)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleAdd(product)}
+                        disabled={!product.inStock}
+                        className={`inline-flex min-h-10 items-center justify-center gap-2 px-3 text-[10px] font-medium uppercase tracking-[.12em] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                          isRecentlyAdded
+                            ? 'bg-[#65705b] text-[#fffaf1]'
+                            : 'bg-[#302d27] text-[#f7f1e7] hover:bg-[#8d6d4e]'
+                        }`}
+                      >
+                        {isRecentlyAdded ? <Check className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
+                        <span>{isRecentlyAdded ? 'Added' : product.inStock ? 'Add to bag' : 'Sold out'}</span>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="border border-dashed border-[#cfc4b4] bg-[#fbf8f1]/60 px-6 py-16 text-center">
+            <p className="font-serif text-3xl">A quiet shelf, for now.</p>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[#777064]">
+              There are no pieces in this collection at the moment.
+            </p>
+            <button
+              type="button"
+              onClick={() => onSelectCategory(null)}
+              className="mt-6 border-b border-[#987858] pb-1 text-xs uppercase tracking-[.15em] text-[#6e5942]"
+            >
+              Return to all collections
+            </button>
+          </div>
+        )}
 
-                  <p className="text-xs text-[#1A1A1A]/70 line-clamp-2 mt-2 leading-relaxed font-light">
-                    {product.description}
-                  </p>
-                </div>
-
-                {/* Price & Add to Cart */}
-                <div className="pt-4 border-t border-[#E6E0D6]/60 flex items-center justify-between">
-                  <span className="font-mono text-base font-medium text-[#1A1A1A] tabular-nums">
-                    ${product.price}
-                  </span>
-
-                  <button
-                    onClick={() => handleAdd(product)}
-                    className={`px-4 py-2 rounded-sm text-xs uppercase tracking-wider font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
-                      isRecentlyAdded
-                        ? 'bg-[#A98765] text-[#FFFFFF]'
-                        : 'bg-[#1A1A1A] text-[#F5F1EB] hover:bg-[#A98765]'
-                    }`}
-                  >
-                    {isRecentlyAdded ? (
-                      <>
-                        <Check className="w-3.5 h-3.5" />
-                        <span>Added</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag className="w-3.5 h-3.5" />
-                        <span>Add</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        <div className="mt-16 border-t border-[#ded5c8] pt-7 text-center sm:mt-20">
+          <p className="font-serif text-2xl text-[#514a3f]">Selected with care. Sent with intention.</p>
+          <p className="mt-2 text-xs text-[#827969]">Thoughtful objects for a practice that is entirely your own.</p>
+        </div>
       </div>
 
-      {/* Quick View Modal */}
       {quickViewProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1A1A1A]/70 backdrop-blur-sm animate-in fade-in duration-200">
+        <div
+          className="shop-quick-view-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-[#211f1b]/70 p-3 backdrop-blur-sm sm:p-6"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setQuickViewProduct(null);
+          }}
+        >
           <div
-            className="relative w-full max-w-2xl bg-[#FAF7F2] rounded-xl border border-[#C4A484]/40 shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quick-view-title"
+            className="shop-quick-view-panel relative max-h-[92dvh] w-full max-w-3xl overflow-y-auto border border-[#c7b79f] bg-[#f7f2e9] shadow-2xl"
           >
             <button
+              type="button"
               onClick={() => setQuickViewProduct(null)}
-              className="absolute top-5 right-5 p-2 rounded-full text-[#1A1A1A]/60 hover:text-[#1A1A1A] hover:bg-[#E6E0D6]/50 cursor-pointer"
+              className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[#f7f2e9]/90 text-[#28251f] transition hover:bg-[#28251f] hover:text-white"
+              aria-label="Close product details"
             >
-              <X className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-              <div className="aspect-square rounded-lg overflow-hidden bg-[#F5F1EB] border border-[#E6E0D6]">
+            <div className="grid sm:grid-cols-2">
+              <div className="relative min-h-64 bg-[#e7dfd2] sm:min-h-[470px]">
+                <div className="absolute inset-0 flex items-center justify-center p-8 text-center font-serif text-2xl text-[#8d7355]/70" aria-hidden="true">
+                  {quickViewProduct.name}
+                </div>
                 <img
                   src={quickViewProduct.image}
                   alt={quickViewProduct.name}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
+                  className="relative h-full min-h-64 w-full object-cover sm:min-h-[470px]"
+                  onError={(event) => { event.currentTarget.style.display = 'none'; }}
                 />
               </div>
-
-              <div className="space-y-4">
-                <span className="text-[10px] tracking-widest uppercase text-[#A98765] font-medium block">
-                  {quickViewProduct.category} · {quickViewProduct.tag}
-                </span>
-                <h3 className="font-serif text-3xl text-[#1A1A1A]">{quickViewProduct.name}</h3>
-                <p className="font-mono text-xl text-[#1A1A1A] tabular-nums">${quickViewProduct.price}</p>
-                <p className="text-xs text-[#1A1A1A]/75 leading-relaxed font-light">{quickViewProduct.description}</p>
-
-                <div className="space-y-1.5 pt-2">
-                  <span className="text-[10px] uppercase tracking-wider text-[#8E8271] font-medium block">
-                    Product Details:
-                  </span>
-                  {quickViewProduct.details.map((detail, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs text-[#1A1A1A]/80">
-                      <span className="text-[#C4A484]">✦</span>
-                      <span>{detail}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="pt-4">
-                  <button
-                    onClick={() => {
-                      handleAdd(quickViewProduct);
-                      setQuickViewProduct(null);
-                    }}
-                    className="w-full py-3 bg-[#1A1A1A] text-[#F5F1EB] text-xs uppercase tracking-widest hover:bg-[#A98765] transition-colors rounded-sm flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <ShoppingBag className="w-4 h-4" />
-                    <span>Add to Bag (${quickViewProduct.price})</span>
-                  </button>
-                </div>
+              <div className="flex flex-col justify-center p-6 sm:p-9">
+                <span className="shop-kicker">{quickViewProduct.category} · {quickViewProduct.tag}</span>
+                <h2 id="quick-view-title" className="mt-4 font-serif text-4xl leading-[.98] sm:text-5xl">{quickViewProduct.name}</h2>
+                <p className="mt-4 font-mono text-base tabular-nums">{formatCurrency(quickViewProduct.price, quickViewProduct.currency)}</p>
+                <p className="mt-5 text-sm leading-6 text-[#6f685c]">{quickViewProduct.description}</p>
+                {quickViewProduct.details.length > 0 && (
+                  <div className="mt-6 border-t border-[#ded5c8] pt-5">
+                    <h3 className="text-[10px] font-semibold uppercase tracking-[.16em] text-[#827969]">Details</h3>
+                    <ul className="mt-3 space-y-2">
+                      {quickViewProduct.details.map((detail) => (
+                        <li key={detail} className="flex gap-2 text-xs leading-5 text-[#5e584e]">
+                          <span aria-hidden="true" className="mt-2 h-1 w-1 shrink-0 rounded-full bg-[#987858]" />
+                          <span>{detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  disabled={!quickViewProduct.inStock}
+                  onClick={() => {
+                    handleAdd(quickViewProduct);
+                    setQuickViewProduct(null);
+                  }}
+                  className="mt-7 flex min-h-12 w-full items-center justify-center gap-2 bg-[#302d27] px-4 text-xs uppercase tracking-[.14em] text-[#f7f1e7] transition hover:bg-[#8d6d4e] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  {quickViewProduct.inStock ? `Add to bag · ${formatCurrency(quickViewProduct.price, quickViewProduct.currency)}` : 'Sold out'}
+                </button>
               </div>
             </div>
           </div>

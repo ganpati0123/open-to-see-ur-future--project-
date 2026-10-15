@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Volume2, VolumeX, Menu, X, Calendar, Sparkles, MessageCircle } from 'lucide-react';
+import {
+  Calendar,
+  ChevronDown,
+  Menu,
+  MessageCircle,
+  ShoppingBag,
+  Sparkles,
+  Volume2,
+  VolumeX,
+  X,
+} from 'lucide-react';
+import { PRODUCT_CATEGORIES, PRODUCTS_DATA } from '../data/productsData';
 import { playChimeSound } from '../utils/audio';
 
 interface NavbarProps {
@@ -11,20 +22,28 @@ interface NavbarProps {
   onNavigate: (sectionId: string) => void;
 }
 
+const availableCategories = PRODUCT_CATEGORIES.filter((category) =>
+  PRODUCTS_DATA.some((product) => product.category === category.label),
+);
+
 export const Navbar: React.FC<NavbarProps> = ({
   cartCount,
   onOpenCart,
   onOpenBookSession,
   soundEnabled,
   onToggleSound,
-  onNavigate
+  onNavigate,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [shopMenuOpen, setShopMenuOpen] = useState(false);
+  const [mobileShopOpen, setMobileShopOpen] = useState(false);
 
   const handleShareWhatsApp = () => {
     playChimeSound();
-    const siteUrl = typeof window !== 'undefined' ? window.location.href : 'https://ais-pre-7jhft7fsbc4nlbh5xm6kd6-859149636008.asia-southeast1.run.app';
-    const text = `✨ Discover *openToSeeYourFuture* by Neha Arora ✨\n\nIntuitive tarot readings, interactive card spreads, and sacred ritual goods.\n\n🔮 Try your card reading here:\n${siteUrl}`;
+    const siteUrl = typeof window !== 'undefined'
+      ? window.location.href
+      : 'https://opentoseeyourfuture.com';
+    const text = `Discover openToSeeYourFuture by Neha Arora.\n\nIntuitive tarot readings, interactive card spreads, and thoughtfully selected ritual goods.\n\nExplore your reading here:\n${siteUrl}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   };
 
@@ -32,172 +51,199 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (soundEnabled) playChimeSound();
     onNavigate(id);
     setMobileMenuOpen(false);
+    setShopMenuOpen(false);
+    setMobileShopOpen(false);
   };
 
-  return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#F5F1EB]/85 border-b border-[#E6E0D6]/60 transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        
-        {/* Zone 1: Brand Wordmark */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleNavClick('hero')}
-            className="text-left group focus-visible:outline-none"
-          >
-            <span className="font-serif text-2xl sm:text-3xl tracking-tight text-[#1A1A1A] group-hover:text-[#A98765] transition-colors">
-              openToSeeYourFuture<span className="text-[#C4A484]">.</span>
-            </span>
-          </button>
-        </div>
+  const navButtonClass = 'relative cursor-pointer py-2 text-[10px] font-medium uppercase tracking-[.17em] text-[#514d45] transition-colors hover:text-[#8d6d4e] after:absolute after:bottom-0 after:left-0 after:h-px after:w-0 after:bg-[#b69570] after:transition-all after:duration-300 hover:after:w-full';
 
-        {/* Zone 2: Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-8 text-xs tracking-[0.2em] uppercase font-medium text-[#1A1A1A]/70">
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-[#ded5c8]/80 bg-[#f3eee5]/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+        <button
+          type="button"
+          onClick={() => handleNavClick('hero')}
+          className="group shrink-0 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8d6d4e]"
+          aria-label="Open to See Your Future home"
+        >
+          <span className="font-serif text-[1.42rem] tracking-[-.035em] text-[#28251f] transition-colors group-hover:text-[#8d6d4e] sm:text-[1.65rem]">
+            openToSeeYourFuture<span className="text-[#b69570]">.</span>
+          </span>
+        </button>
+
+        <nav aria-label="Main navigation" className="hidden items-center gap-6 lg:flex xl:gap-8">
+          <button type="button" onClick={() => handleNavClick('readings')} className={navButtonClass}>Readings</button>
+          <button type="button" onClick={() => handleNavClick('spreads')} className={navButtonClass}>Spreads</button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                if (soundEnabled) playChimeSound();
+                onNavigate('shop');
+                setShopMenuOpen((open) => !open);
+              }}
+              className={`${navButtonClass} flex items-center gap-1.5`}
+              aria-expanded={shopMenuOpen}
+              aria-haspopup="true"
+            >
+              Shop
+              <ChevronDown className={`h-3 w-3 transition-transform ${shopMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {shopMenuOpen && (
+              <div className="absolute left-1/2 top-full mt-4 w-64 -translate-x-1/2 border border-[#ded5c8] bg-[#fbf8f1] p-2 shadow-[0_18px_45px_rgba(45,38,29,.14)]">
+                <button
+                  type="button"
+                  onClick={() => handleNavClick('shop')}
+                  className="flex w-full items-center justify-between px-3 py-3 text-left text-[10px] uppercase tracking-[.16em] text-[#8d6d4e] transition-colors hover:bg-[#f0e9de]"
+                >
+                  All collections
+                  <span aria-hidden="true">→</span>
+                </button>
+                <div className="my-1 border-t border-[#ded5c8]" />
+                <div className="max-h-[60vh] overflow-y-auto">
+                  {availableCategories.map((category) => (
+                    <button
+                      type="button"
+                      key={category.id}
+                      onClick={() => handleNavClick(category.id)}
+                      className="flex w-full items-center justify-between px-3 py-2.5 text-left text-xs text-[#514d45] transition-colors hover:bg-[#f0e9de] hover:text-[#8d6d4e]"
+                    >
+                      {category.label}
+                      <span className="text-[10px] text-[#9b907f]">
+                        {PRODUCTS_DATA.filter((product) => product.category === category.label).length}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <button
-            onClick={() => handleNavClick('readings')}
-            className="hover:text-[#1A1A1A] transition-colors cursor-pointer py-1 relative hover:after:w-full after:w-0 after:h-[1px] after:bg-[#C4A484] after:absolute after:bottom-0 after:left-0 after:transition-all after:duration-300"
+            type="button"
+            onClick={() => {
+              setShopMenuOpen(false);
+              setMobileMenuOpen(false);
+              onOpenBookSession();
+            }}
+            className={`${navButtonClass} flex items-center gap-1.5`}
           >
-            Readings
+            <span>Book a session</span>
+            <span className="font-serif text-sm italic normal-case tracking-normal text-[#8d6d4e]">with Neha</span>
           </button>
-          <button
-            onClick={() => handleNavClick('spreads')}
-            className="hover:text-[#1A1A1A] transition-colors cursor-pointer py-1 relative hover:after:w-full after:w-0 after:h-[1px] after:bg-[#C4A484] after:absolute after:bottom-0 after:left-0 after:transition-all after:duration-300"
-          >
-            Spreads
-          </button>
-          <button
-            onClick={() => handleNavClick('shop')}
-            className="hover:text-[#1A1A1A] transition-colors cursor-pointer py-1 relative hover:after:w-full after:w-0 after:h-[1px] after:bg-[#C4A484] after:absolute after:bottom-0 after:left-0 after:transition-all after:duration-300"
-          >
-            Shop
-          </button>
-          <button
-            onClick={onOpenBookSession}
-            className="hover:text-[#1A1A1A] transition-colors cursor-pointer py-1 relative hover:after:w-full after:w-0 after:h-[1px] after:bg-[#C4A484] after:absolute after:bottom-0 after:left-0 after:transition-all after:duration-300 flex items-center gap-1.5"
-          >
-            <span>Book Session</span>
-            <span className="text-[10px] text-[#A98765] lowercase font-normal italic">with Neha</span>
-          </button>
-          <button
-            onClick={() => handleNavClick('journal')}
-            className="hover:text-[#1A1A1A] transition-colors cursor-pointer py-1 relative hover:after:w-full after:w-0 after:h-[1px] after:bg-[#C4A484] after:absolute after:bottom-0 after:left-0 after:transition-all after:duration-300"
-          >
-            Journal
-          </button>
+          <button type="button" onClick={() => handleNavClick('journal')} className={navButtonClass}>Journal</button>
         </nav>
 
-        {/* Zone 3: Actions */}
-        <div className="flex items-center space-x-3 sm:space-x-5">
-          {/* Sound Toggle */}
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <button
+            type="button"
             onClick={onToggleSound}
-            title={soundEnabled ? "Mute ambient whispers" : "Enable ambient whispers"}
-            className="p-2 text-[#1A1A1A]/70 hover:text-[#1A1A1A] transition-colors rounded-full hover:bg-[#E6E0D6]/40 cursor-pointer"
-            aria-label="Toggle Sound"
+            title={soundEnabled ? 'Mute ambient sound' : 'Enable ambient sound'}
+            className="hidden rounded-full p-2 text-[#8d6d4e] transition-colors hover:bg-[#e8dfd2] sm:inline-flex"
+            aria-label={soundEnabled ? 'Mute ambient sound' : 'Enable ambient sound'}
           >
-            {soundEnabled ? (
-              <Volume2 className="w-4 h-4 text-[#A98765]" />
-            ) : (
-              <VolumeX className="w-4 h-4 text-[#1A1A1A]/40" />
-            )}
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4 text-[#999080]" />}
           </button>
-
-          {/* Quick Consultation CTA */}
           <button
+            type="button"
             onClick={() => handleNavClick('readings')}
-            className="hidden lg:inline-flex items-center gap-2 px-4 py-2 border border-[#C4A484] text-[#1A1A1A] text-xs uppercase tracking-widest hover:bg-[#C4A484] hover:text-[#FFFFFF] transition-all duration-300 rounded-sm cursor-pointer"
+            className="hidden items-center gap-2 border border-[#b69570] px-3 py-2 text-[9px] uppercase tracking-[.14em] text-[#514d45] transition-colors hover:bg-[#b69570] hover:text-[#fbf8f1] xl:inline-flex"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#A98765]" />
-            <span>Draw Cards</span>
+            <Sparkles className="h-3.5 w-3.5" />
+            Draw cards
           </button>
-
-          {/* WhatsApp Share Button */}
           <button
-            onClick={handleShareWhatsApp}
-            title="Share on WhatsApp"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25D366]/10 hover:bg-[#25D366] text-[#128C7E] hover:text-white border border-[#25D366]/40 hover:border-[#25D366] rounded-sm text-xs font-medium uppercase tracking-wider transition-all duration-200 cursor-pointer"
-          >
-            <MessageCircle className="w-3.5 h-3.5 fill-current" />
-            <span className="hidden xl:inline">WhatsApp</span>
-          </button>
-
-          {/* Cart Icon with Counter */}
-          <button
+            type="button"
             onClick={onOpenCart}
-            className="relative p-2.5 text-[#1A1A1A] hover:text-[#A98765] transition-colors rounded-full hover:bg-[#E6E0D6]/40 cursor-pointer"
-            aria-label="Open Shopping Bag"
+            className="relative rounded-full p-2.5 text-[#28251f] transition-colors hover:bg-[#e8dfd2] hover:text-[#8d6d4e]"
+            aria-label={`Open shopping bag${cartCount > 0 ? `, ${cartCount} items` : ''}`}
           >
-            <ShoppingBag className="w-5 h-5 stroke-[1.5]" />
+            <ShoppingBag className="h-[19px] w-[19px]" strokeWidth={1.55} />
             {cartCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#1A1A1A] text-[#F5F1EB] rounded-full text-[10px] font-medium flex items-center justify-center tabular-nums">
+              <span className="absolute right-0 top-0 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-[#655e50] px-1 text-[9px] font-medium tabular-nums text-[#fffaf1]">
                 {cartCount}
               </span>
             )}
           </button>
-
-          {/* Mobile Menu Button */}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-[#1A1A1A] hover:bg-[#E6E0D6]/50 rounded-sm cursor-pointer"
-            aria-label="Toggle Navigation Menu"
+            type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            className="rounded-full p-2 text-[#28251f] transition-colors hover:bg-[#e8dfd2] lg:hidden"
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#F5F1EB] border-b border-[#E6E0D6] px-6 py-6 space-y-4 shadow-lg animate-in slide-in-from-top duration-200">
-          <div className="flex flex-col space-y-4 text-sm tracking-widest uppercase font-medium">
+        <div className="border-t border-[#ded5c8] bg-[#f7f2e9] px-5 pb-6 pt-4 shadow-[0_18px_32px_rgba(45,38,29,.12)] lg:hidden">
+          <nav aria-label="Mobile navigation" className="mx-auto flex max-w-2xl flex-col">
+            <button type="button" onClick={() => handleNavClick('readings')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]">Interactive readings</button>
+            <button type="button" onClick={() => handleNavClick('spreads')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]">Choose a spread</button>
             <button
-              onClick={() => handleNavClick('readings')}
-              className="text-left text-[#1A1A1A]/80 hover:text-[#1A1A1A] py-1 border-b border-[#E6E0D6]/40"
+              type="button"
+              onClick={() => {
+                onNavigate('shop');
+                setMobileShopOpen((open) => !open);
+              }}
+              className="flex items-center justify-between border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]"
+              aria-expanded={mobileShopOpen}
             >
-              Interactive Tarot Readings
+              Sacred shop
+              <ChevronDown className={`h-4 w-4 transition-transform ${mobileShopOpen ? 'rotate-180' : ''}`} />
             </button>
+            {mobileShopOpen && (
+              <div className="grid grid-cols-2 gap-x-5 border-b border-[#ded5c8] bg-[#eee7dc] px-3 py-2 sm:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => handleNavClick('shop')}
+                  className="py-2.5 text-left text-xs font-medium text-[#8d6d4e]"
+                >
+                  All collections
+                </button>
+                {availableCategories.map((category) => (
+                  <button
+                    type="button"
+                    key={category.id}
+                    onClick={() => handleNavClick(category.id)}
+                    className="py-2.5 text-left text-xs text-[#514d45] transition-colors hover:text-[#8d6d4e]"
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
+            )}
             <button
-              onClick={() => handleNavClick('spreads')}
-              className="text-left text-[#1A1A1A]/80 hover:text-[#1A1A1A] py-1 border-b border-[#E6E0D6]/40"
-            >
-              Choose Your Spread
-            </button>
-            <button
-              onClick={() => handleNavClick('shop')}
-              className="text-left text-[#1A1A1A]/80 hover:text-[#1A1A1A] py-1 border-b border-[#E6E0D6]/40"
-            >
-              Sacred Shop & Crystals
-            </button>
-            <button
+              type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
+                setMobileShopOpen(false);
                 onOpenBookSession();
               }}
-              className="text-left text-[#1A1A1A]/80 hover:text-[#1A1A1A] py-1 border-b border-[#E6E0D6]/40 flex items-center justify-between"
+              className="flex items-center justify-between border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]"
             >
-              <span>1:1 Session with Neha Arora</span>
-              <Calendar className="w-4 h-4 text-[#A98765]" />
+              Book a session
+              <Calendar className="h-4 w-4 text-[#8d6d4e]" />
             </button>
+            <button type="button" onClick={() => handleNavClick('journal')} className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#514d45]">Editorial journal</button>
+          </nav>
+          <div className="mx-auto mt-4 flex max-w-2xl gap-3">
             <button
-              onClick={() => handleNavClick('journal')}
-              className="text-left text-[#1A1A1A]/80 hover:text-[#1A1A1A] py-1"
-            >
-              Editorial Journal
-            </button>
-          </div>
-
-          <div className="pt-2 space-y-2">
-            <button
+              type="button"
               onClick={() => handleNavClick('readings')}
-              className="w-full py-3 bg-[#1A1A1A] text-[#F5F1EB] text-xs uppercase tracking-widest hover:bg-[#A98765] transition-colors rounded-sm"
+              className="flex min-h-11 flex-1 items-center justify-center gap-2 bg-[#302d27] px-3 text-[10px] uppercase tracking-[.14em] text-[#f7f1e7]"
             >
-              Get Your Reading
+              <Sparkles className="h-3.5 w-3.5" />
+              Draw cards
             </button>
             <button
+              type="button"
               onClick={handleShareWhatsApp}
-              className="w-full py-2.5 bg-[#25D366] text-white text-xs uppercase tracking-widest hover:bg-[#20ba59] transition-colors rounded-sm flex items-center justify-center gap-2 font-medium"
+              className="flex min-h-11 flex-1 items-center justify-center gap-2 border border-[#b69570] px-3 text-[10px] uppercase tracking-[.12em] text-[#5c5142]"
             >
-              <MessageCircle className="w-4 h-4 fill-current" />
-              <span>Share Website on WhatsApp</span>
+              <MessageCircle className="h-3.5 w-3.5" />
+              Share the studio
             </button>
           </div>
         </div>
