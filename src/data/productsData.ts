@@ -364,7 +364,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 142,
     description: 'Natural coconut-soy wax infused with wild vetiver, ceremonial Palo Santo, and rough-cut clear quartz crystals.',
     details: ['100% Organic Coconut Soy', '55+ Hour Clean Burn Time', 'Clear Quartz Raw Crystal Embedded', 'Smokeless Cotton Wick'],
-    image: '/src/assets/images/boutique_ritual_candle_1790673095609.jpg',
+    image: '/images/boutique_ritual_candle_1790673095609.jpg',
     inStock: true
   },
   {
@@ -416,7 +416,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 210,
     description: 'Linen hardcover journal embossed with subtle gold celestial foil. 240 ivory grid pages designed specifically for daily card pulls and spreads.',
     details: ['Heavy 120gsm bleeding-proof paper', 'Three ribbon bookmarks', 'Pocket for keepsake readings', 'Embossed gold foil cover'],
-    image: '/src/assets/images/tarot_deck_gold_1790673081468.jpg',
+    image: '/images/tarot_deck_gold_1790673081468.jpg',
     inStock: true
   },
   {
@@ -429,7 +429,7 @@ export const PRODUCTS_DATA: Product[] = [
     reviewsCount: 312,
     description: 'An in-depth 5-card relational reading recorded as a high-fidelity voice memo accompanied by a beautifully formatted 12-page PDF dossier.',
     details: ['Audio recording by Neha Arora', 'High-res card spread imagery', 'Soul connection analysis', 'Actionable heart rituals'],
-    image: '/src/assets/images/hero_tarot_ambient_1790673059166.jpg',
+    image: '/images/hero_tarot_ambient_1790673059166.jpg',
     inStock: true
   },
   {

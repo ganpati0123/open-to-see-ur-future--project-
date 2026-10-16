@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 interface AuthShellProps {
   eyebrow: string;
@@ -13,9 +14,10 @@ export const AuthShell = ({ eyebrow, title, description, children }: AuthShellPr
     <div className="w-full max-w-md">
       <Link
         to="/"
-        className="mb-6 inline-flex text-[10px] uppercase tracking-[.15em] text-[#766b5b] underline decoration-[#b69570] underline-offset-4 hover:text-[#28251f]"
+        className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#e6b967]/30 bg-[#111326]/80 px-4 py-2 text-xs uppercase tracking-[.15em] text-[#e6b967] shadow-sm transition-all hover:border-[#e6b967] hover:bg-[#e6b967]/10"
       >
-        Back to the studio
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>Back to the studio</span>
       </Link>
       <section className="cosmic-glow rounded-2xl border border-[#e6b967]/25 bg-[#111326]/90 p-6 shadow-2xl backdrop-blur-xl sm:p-9">
         <span className="shop-kicker">{eyebrow}</span>

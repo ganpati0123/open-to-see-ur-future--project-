@@ -117,22 +117,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
             </span>
             <ul className="space-y-2">
               <li>
-                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('spread:one-card')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   One Card Quick Pull (Free)
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('spread:three-card')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   Past, Present, Future
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('spread:love-connection')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   Love & Connection Spread
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('spread:celtic-cross')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   Celtic Cross Master Spread
                 </button>
               </li>
@@ -145,22 +145,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
             </span>
             <ul className="space-y-2">
               <li>
-                <button onClick={() => onNavigate('shop')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('product:intention-candle')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   Intention Soy Candles
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('shop')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('product:crystal-kit')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   Consecrated Crystal Kits
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('shop')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('product:sage-bundle')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   White Sage & Lavender Bundles
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('shop')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('product:tarot-journal')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   Embossed Tarot Journals
                 </button>
               </li>
@@ -173,22 +173,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
             </span>
             <ul className="space-y-2">
               <li>
-                <button onClick={() => onNavigate('guide:guidance')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guidance:live-consultation')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   1:1 Live Video Consultation
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('shop')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guidance:digital-readings')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   Digital Audio Readings
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('journal')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guidance:lunar-essays')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   Lunar Archetype Essays
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('hero')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guidance:cosmic-pulse')} className="hover:text-[#F5F1EB] transition-colors cursor-pointer text-left">
                   Daily Cosmic Pulse
                 </button>
               </li>
@@ -196,11 +196,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
           </div>
 
           <div className="space-y-3">
-            <button type="button" onClick={() => onNavigate('guide:ethos')} className="text-left uppercase tracking-[0.2em] text-[#C4A484] font-medium text-[10px] block hover:text-[#F5F1EB] transition-colors">
+            <button type="button" onClick={() => onNavigate('guide:ethos')} className="text-left uppercase tracking-[0.2em] text-[#C4A484] font-medium text-[10px] block hover:text-[#F5F1EB] transition-colors cursor-pointer">
               Studio & Ethos
             </button>
             <p className="text-xs text-[#F5F1EB]/60 leading-relaxed font-light">
-              OpenToSeeYourFuture studio is founded on principles of integrity, confidentiality, and deep respect for the seeker's sacred autonomy.
+              OpenToSeeYourFuture studio is founded on principles of integrity, confidentiality, and deep respect for the seeker&apos;s sacred autonomy.
             </p>
             <p className="text-xs text-[#C4A484] pt-2">
               Guide: Neha Arora

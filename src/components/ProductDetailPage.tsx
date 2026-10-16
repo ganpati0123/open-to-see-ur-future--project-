@@ -63,6 +63,24 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   return (
     <main className="shop-shell min-h-[70vh] bg-[#f3eee5] pb-16 sm:pb-24">
       <div className="mx-auto max-w-7xl px-4 pt-5 sm:px-8 sm:pt-8 lg:px-10">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => onNavigate('shop')}
+            className="inline-flex items-center gap-2 rounded-full border border-[#ded5c8] bg-white px-3.5 py-1.5 text-xs uppercase tracking-[0.14em] text-[#625b50] shadow-xs transition-all hover:border-[#8d6d4e] hover:text-[#28251f] cursor-pointer"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Back to shop</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate('hero')}
+            className="inline-flex items-center gap-1.5 text-xs text-[#817766] hover:text-[#28251f] transition-colors cursor-pointer"
+          >
+            Back to studio home →
+          </button>
+        </div>
+
         <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[.13em] text-[#817766] sm:mb-7">
           <button type="button" onClick={() => onNavigate('shop')} className="transition-colors hover:text-[#8d6d4e]">
             The shop
@@ -417,6 +435,25 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
           </section>
         )}
+
+        {/* Bottom Back Actions */}
+        <div className="mt-14 flex flex-wrap items-center justify-center gap-4 border-t border-[#ded5c8] pt-8">
+          <button
+            type="button"
+            onClick={() => onNavigate('shop')}
+            className="inline-flex items-center gap-2 rounded-sm bg-[#302d27] px-6 py-3 text-xs uppercase tracking-[0.16em] text-[#f7f1e7] transition-colors hover:bg-[#8d6d4e] cursor-pointer"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to All Collections</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate('hero')}
+            className="inline-flex items-center gap-2 rounded-sm border border-[#ded5c8] bg-white px-6 py-3 text-xs uppercase tracking-[0.16em] text-[#514a3f] transition-colors hover:bg-[#f2ece2] cursor-pointer"
+          >
+            <span>Back to Studio Home</span>
+          </button>
+        </div>
       </div>
     </main>
   );

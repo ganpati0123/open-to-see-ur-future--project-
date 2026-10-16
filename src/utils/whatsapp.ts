@@ -118,3 +118,60 @@ export const getCartWhatsAppUrl = (
 
   return makeWhatsAppUrl(message);
 };
+
+export const getCheckoutWhatsAppUrl = (
+  items: WhatsAppCartItem[],
+  customer: {
+    name: string;
+    phone: string;
+    address: string;
+  },
+): string => {
+  if (items.length === 0) {
+    throw new Error('Cannot create a WhatsApp order link for an empty cart.');
+  }
+
+  const subtotals: Record<'INR' | 'USD', number> = { INR: 0, USD: 0 };
+
+  const itemLines = items.map(({ product, quantity }, index) => {
+    const safeQuantity = normalizeQuantity(quantity);
+    const currency = product.currency ?? 'USD';
+    const lineSubtotal = product.price * safeQuantity;
+    subtotals[currency] += lineSubtotal;
+
+    return [
+      `${index + 1}. ${product.name}`,
+      `Category: ${product.category}`,
+      `Quantity: ${safeQuantity}`,
+      `Unit price: ${formatCurrency(product.price, currency)}`,
+      `Subtotal: ${formatCurrency(lineSubtotal, currency)}`,
+    ].join('\n');
+  });
+
+  const currencySubtotals = (['INR', 'USD'] as const)
+    .filter((currency) => subtotals[currency] > 0)
+    .map((currency) => `${currency}: ${formatCurrency(subtotals[currency], currency)}`);
+
+  const customerLines = [
+    'Customer details:',
+    `Name: ${customer.name}`,
+    `Phone: ${customer.phone}`,
+    `Delivery address: ${customer.address}`,
+  ];
+
+  const messageParts = [
+    'Hi! I would like to place an order from my shopping bag.',
+    '',
+    ...customerLines,
+    '',
+    'Order items:',
+    ...itemLines,
+    '',
+    'Subtotal by currency:',
+    ...currencySubtotals,
+    '',
+    'Please confirm availability, shipping charges, and payment details.',
+  ];
+
+  return makeWhatsAppUrl(messageParts.join('\n'));
+};

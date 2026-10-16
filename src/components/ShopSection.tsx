@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Check, ChevronRight, Eye, MessageCircle, ShoppingBag, Star, X } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, Eye, MessageCircle, ShoppingBag, Star, X } from 'lucide-react';
 import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from '../data/productsData';
 import { formatCurrency } from '../utils/money';
 import { getProductWhatsAppUrl } from '../utils/whatsapp';
@@ -64,6 +64,16 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
     <section id="shop" className="shop-shell scroll-mt-20">
       <div className="shop-intro">
         <div className="shop-intro-inner mx-auto max-w-7xl px-5 pb-12 pt-12 sm:px-8 sm:pb-16 sm:pt-16 lg:px-10 lg:pb-20 lg:pt-20">
+          {selectedCategory && (
+            <button
+              type="button"
+              onClick={() => onSelectCategory(null)}
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#b9a58a]/60 bg-white/80 px-4 py-2 text-xs uppercase tracking-[0.14em] text-[#625b50] shadow-xs backdrop-blur-xs transition-all hover:bg-white hover:text-[#28251f] cursor-pointer"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to all collections</span>
+            </button>
+          )}
           <div className="grid items-end gap-8 lg:grid-cols-[1fr_300px]">
             <div>
               <div className="shop-kicker mb-5 flex items-center gap-3">
@@ -268,9 +278,22 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
             <button
               type="button"
               onClick={() => onSelectCategory(null)}
-              className="mt-6 border-b border-[#987858] pb-1 text-xs uppercase tracking-[.15em] text-[#6e5942]"
+              className="mt-6 border-b border-[#987858] pb-1 text-xs uppercase tracking-[.15em] text-[#6e5942] cursor-pointer"
             >
               Return to all collections
+            </button>
+          </div>
+        )}
+
+        {selectedCategory && (
+          <div className="mt-12 flex justify-center">
+            <button
+              type="button"
+              onClick={() => onSelectCategory(null)}
+              className="inline-flex items-center gap-2 rounded-sm bg-[#302d27] px-6 py-3 text-xs uppercase tracking-[0.16em] text-[#f7f1e7] transition-colors hover:bg-[#8d6d4e] cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back to All Collections</span>
             </button>
           </div>
         )}

@@ -4,7 +4,7 @@ import { Product } from '../data/productsData';
 import { X, Trash2, Plus, Minus, ArrowRight, MessageCircle, ShieldCheck } from 'lucide-react';
 import { playChimeSound } from '../utils/audio';
 import { formatCurrency } from '../utils/money';
-import { getCartWhatsAppUrl, WhatsAppCustomerDetails } from '../utils/whatsapp';
+import { getCartWhatsAppUrl, getCheckoutWhatsAppUrl, WhatsAppCustomerDetails } from '../utils/whatsapp';
 
 export interface CartItem {
   product: Product;
@@ -30,6 +30,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 }) => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [checkoutWhatsAppUrl, setCheckoutWhatsAppUrl] = useState('');
   const [customer, setCustomer] = useState<WhatsAppCustomerDetails>({
     name: '',
     phone: '',
@@ -64,19 +65,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
+    const fullAddress = [
+      String(formData.get('address') ?? customer.address),
+      String(formData.get('city') ?? customer.city),
+      String(formData.get('pincode') ?? customer.pincode),
+    ].filter(Boolean).join(', ');
     const whatsappUrl = getCheckoutWhatsAppUrl(items, {
-      name: String(formData.get('name') ?? ''),
-      phone: String(formData.get('phone') ?? ''),
-      address: String(formData.get('address') ?? ''),
+      name: String(formData.get('name') ?? customer.name),
+      phone: String(formData.get('phone') ?? customer.phone),
+      address: fullAddress,
     });
+    setCheckoutWhatsAppUrl(whatsappUrl);
 
     playChimeSound();
-    window.open(getCartWhatsAppUrl(items, customer), '_blank', 'noopener,noreferrer');
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     setOrderComplete(true);
     setTimeout(() => {
       onClearCart();
       setIsCheckingOut(false);
       setOrderComplete(false);
+      setCheckoutWhatsAppUrl('');
       setCustomer({ name: '', phone: '', address: '', city: '', pincode: '' });
       onClose();
     }, 1800);
