@@ -117,22 +117,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
             </span>
             <ul className="space-y-2">
               <li>
-                <button onClick={() => onNavigate('spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
                   One Card Quick Pull (Free)
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
                   Past, Present, Future
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
                   Love & Connection Spread
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
                   Celtic Cross Master Spread
                 </button>
               </li>
@@ -173,7 +173,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
             </span>
             <ul className="space-y-2">
               <li>
-                <button onClick={onOpenBookSession} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:guidance')} className="hover:text-[#F5F1EB] transition-colors">
                   1:1 Live Video Consultation
                 </button>
               </li>
@@ -196,9 +196,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
           </div>
 
           <div className="space-y-3">
-            <span className="uppercase tracking-[0.2em] text-[#C4A484] font-medium text-[10px] block">
+            <button type="button" onClick={() => onNavigate('guide:ethos')} className="text-left uppercase tracking-[0.2em] text-[#C4A484] font-medium text-[10px] block hover:text-[#F5F1EB] transition-colors">
               Studio & Ethos
-            </span>
+            </button>
             <p className="text-xs text-[#F5F1EB]/60 leading-relaxed font-light">
               OpenToSeeYourFuture studio is founded on principles of integrity, confidentiality, and deep respect for the seeker's sacred autonomy.
             </p>
