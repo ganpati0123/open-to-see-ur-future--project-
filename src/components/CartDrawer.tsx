@@ -4,7 +4,7 @@ import { Product } from '../data/productsData';
 import { X, Trash2, Plus, Minus, ArrowRight, CheckCircle, MessageCircle, ShieldCheck } from 'lucide-react';
 import { playChimeSound } from '../utils/audio';
 import { formatCurrency } from '../utils/money';
-import { getCartWhatsAppUrl } from '../utils/whatsapp';
+import { getCartWhatsAppUrl, WhatsAppCustomerDetails } from '../utils/whatsapp';
 
 export interface CartItem {
   product: Product;
@@ -30,6 +30,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 }) => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [customer, setCustomer] = useState<WhatsAppCustomerDetails>({
+    name: '',
+    phone: '',
+    address: '',
+    city: '',
+    pincode: '',
+  });
 
   const totalsByCurrency = items.reduce<Record<'USD' | 'INR', number>>(
     (totals, item) => {
@@ -56,13 +63,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const handleCheckoutSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     playChimeSound();
+    window.open(getCartWhatsAppUrl(items, customer), '_blank', 'noopener,noreferrer');
     setOrderComplete(true);
     setTimeout(() => {
       onClearCart();
       setIsCheckingOut(false);
       setOrderComplete(false);
+      setCustomer({ name: '', phone: '', address: '', city: '', pincode: '' });
       onClose();
-    }, 3000);
+    }, 1800);
   };
 
   return (
@@ -246,18 +255,23 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <span className="text-[10px] uppercase tracking-wider text-[#A98765] font-semibold block">
                         Quick Express Checkout
                       </span>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Recipient Name"
-                        className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
-                      />
-                      <input
-                        type="text"
-                        required
-                        placeholder="Shipping address"
-                        className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
-                      />
+                      {([
+                        ['name', 'Recipient name'],
+                        ['phone', 'WhatsApp phone number'],
+                        ['address', 'Full shipping address'],
+                        ['city', 'City'],
+                        ['pincode', 'Pincode'],
+                      ] as const).map(([field, placeholder]) => (
+                        <input
+                          key={field}
+                          type={field === 'phone' || field === 'pincode' ? 'tel' : 'text'}
+                          required
+                          value={customer[field]}
+                          onChange={(event) => setCustomer((current) => ({ ...current, [field]: event.target.value }))}
+                          placeholder={placeholder}
+                          className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A] placeholder:text-[#8E8271] focus:border-[#A98765] focus:outline-none"
+                        />
+                      ))}
                     </div>
 
                     <button
