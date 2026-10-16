@@ -49,13 +49,14 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1A1A1A]/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1A1A1A]/70 backdrop-blur-sm animate-in fade-in duration-200" role="presentation" onClick={onClose}>
       <div
         className="premium-float relative w-full max-w-2xl bg-[#FAF7F2] rounded-2xl border border-[#C4A484]/40 shadow-2xl p-6 sm:p-10 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
+          aria-label="Close booking dialog"
           className="absolute top-5 right-5 p-2 rounded-full text-[#1A1A1A]/60 hover:text-[#1A1A1A] hover:bg-[#E6E0D6]/50 cursor-pointer"
         >
           <X className="w-5 h-5" />
@@ -209,7 +210,7 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
                 We Look Forward to Welcoming You
               </h3>
               <p className="text-xs text-[#8E8271] max-w-md mx-auto leading-relaxed">
-                A calendar invitation with private Zoom link has been sent to <strong>{email}</strong> for <strong>{selectedDate} at {selectedTime}</strong>.
+                Your request has been opened in WhatsApp. We&apos;ll confirm availability, payment, and the final session details with you personally.
               </p>
             </div>
 

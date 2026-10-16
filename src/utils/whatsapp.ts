@@ -56,7 +56,7 @@ export const getSessionBookingWhatsAppUrl = (details: {
     `Focus: ${details.topic}`,
     '',
     'Please confirm availability, payment details, and the next steps.',
-  ].join('\\n');
+  ].join('\n');
 
   return makeWhatsAppUrl(message);
 };
