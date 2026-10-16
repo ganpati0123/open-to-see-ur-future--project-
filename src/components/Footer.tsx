@@ -40,21 +40,24 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
           
           {/* Manifesto Left */}
           <div className="lg:col-span-6 space-y-5">
-            <span className="font-serif text-3xl sm:text-4xl text-[#F5F1EB] tracking-tight block">
-              openToSeeYourFuture<span className="text-[#C4A484]">.</span>
-            </span>
+            <div className="flex items-center gap-3">
+              <img src="/oracle-logo.png" alt="" className="h-12 w-12 rounded-full border border-[#e6b967]/40 object-cover" />
+              <span className="font-serif text-3xl sm:text-4xl text-[#F5F1EB] tracking-tight block">
+                openToSeeYourFuture<span className="text-[#C4A484]">.</span>
+              </span>
+            </div>
             <p className="text-sm text-[#F5F1EB]/70 leading-relaxed font-light max-w-lg">
               A high-vibrational sanctuary for modern seekers, founded by Neha Arora. Grounded in archetypal depth psychology, sacred symbology, and intuitive clarity for love, career & spiritual alignment.
             </p>
             <div className="flex flex-wrap items-center gap-4 text-xs text-[#C4A484] tracking-widest uppercase">
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/opentoseeyourfuture"
                 target="_blank"
                 rel="noreferrer"
                 className="hover:underline flex items-center gap-1 text-[#F5F1EB]"
               >
                 <Instagram className="w-3.5 h-3.5" />
-                <span>@vanikabirstudio aesthetic</span>
+                <span>Open To See Your Future on Instagram</span>
               </a>
               <span>·</span>
               <button
@@ -114,22 +117,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
             </span>
             <ul className="space-y-2">
               <li>
-                <button onClick={() => onNavigate('spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
                   One Card Quick Pull (Free)
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
                   Past, Present, Future
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
                   Love & Connection Spread
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('spreads')} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:spreads')} className="hover:text-[#F5F1EB] transition-colors">
                   Celtic Cross Master Spread
                 </button>
               </li>
@@ -170,7 +173,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
             </span>
             <ul className="space-y-2">
               <li>
-                <button onClick={onOpenBookSession} className="hover:text-[#F5F1EB] transition-colors">
+                <button onClick={() => onNavigate('guide:guidance')} className="hover:text-[#F5F1EB] transition-colors">
                   1:1 Live Video Consultation
                 </button>
               </li>
@@ -193,9 +196,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
           </div>
 
           <div className="space-y-3">
-            <span className="uppercase tracking-[0.2em] text-[#C4A484] font-medium text-[10px] block">
+            <button type="button" onClick={() => onNavigate('guide:ethos')} className="text-left uppercase tracking-[0.2em] text-[#C4A484] font-medium text-[10px] block hover:text-[#F5F1EB] transition-colors">
               Studio & Ethos
-            </span>
+            </button>
             <p className="text-xs text-[#F5F1EB]/60 leading-relaxed font-light">
               OpenToSeeYourFuture studio is founded on principles of integrity, confidentiality, and deep respect for the seeker's sacred autonomy.
             </p>

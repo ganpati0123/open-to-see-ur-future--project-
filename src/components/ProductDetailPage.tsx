@@ -228,7 +228,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   </div>
                 </div>
                 <p className="mt-3 text-[10px] leading-5 text-[#817766]">
-                  Your bag keeps INR and USD items in separate totals. Checkout is currently a demo and does not process payments.
+                  Prices are shown in INR. Checkout securely sends your order details to our WhatsApp team for confirmation.
                 </p>
               </div>
 

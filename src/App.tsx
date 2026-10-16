@@ -26,6 +26,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { OfferingPage } from './components/OfferingPage';
 
 const categoryFromPath = (pathname: string): string | null => {
   const match = pathname.match(/^\/shop\/([^/]+)\/?$/);
@@ -44,6 +45,8 @@ function ExistingWebsite() {
   const navigate = useNavigate();
   const categoryId = categoryFromPath(location.pathname);
   const productId = productFromPath(location.pathname);
+  const offeringMatch = location.pathname.match(/^\/guide\/(spreads|guidance|ethos)\/?$/);
+  const offeringSlug = offeringMatch?.[1] ?? null;
 
   // Selected Spread for reading
   const [selectedSpread, setSelectedSpread] = useState<TarotSpread>(TAROT_SPREADS[1]); // Past, Present, Future default
@@ -103,6 +106,12 @@ function ExistingWebsite() {
 
   // Small history-based router keeps collection URLs shareable without replacing the existing experience.
   const handleNavigate = (sectionId: string) => {
+    if (sectionId.startsWith('guide:')) {
+      navigate(`/guide/${sectionId.slice(6)}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     const isCategory = PRODUCT_CATEGORIES.some((category) => category.id === sectionId);
     if (isCategory) {
       const targetPath = `/shop/${sectionId}`;
@@ -158,7 +167,14 @@ function ExistingWebsite() {
       />
 
       <main className="flex-1">
-        {productId ? (
+        {offeringSlug ? (
+          <OfferingPage
+            slug={offeringSlug}
+            onBack={() => navigate('/')}
+            onNavigate={handleNavigate}
+            onOpenBookSession={() => setIsBookSessionOpen(true)}
+          />
+        ) : productId ? (
           <ProductDetailPage
             key={productId}
             product={PRODUCTS_DATA.find((product) => product.id === productId)!}

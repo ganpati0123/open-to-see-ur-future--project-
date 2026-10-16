@@ -4,7 +4,7 @@ import { Product } from '../data/productsData';
 import { X, Trash2, Plus, Minus, ArrowRight, MessageCircle, ShieldCheck } from 'lucide-react';
 import { playChimeSound } from '../utils/audio';
 import { formatCurrency } from '../utils/money';
-import { getCartWhatsAppUrl, getCheckoutWhatsAppUrl } from '../utils/whatsapp';
+import { getCartWhatsAppUrl, WhatsAppCustomerDetails } from '../utils/whatsapp';
 
 export interface CartItem {
   product: Product;
@@ -29,7 +29,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onClearCart
 }) => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [checkoutWhatsAppUrl, setCheckoutWhatsAppUrl] = useState<string | null>(null);
+  const [orderComplete, setOrderComplete] = useState(false);
+  const [customer, setCustomer] = useState<WhatsAppCustomerDetails>({
+    name: '',
+    phone: '',
+    address: '',
+    city: '',
+    pincode: '',
+  });
 
   const totalsByCurrency = items.reduce<Record<'USD' | 'INR', number>>(
     (totals, item) => {
@@ -64,8 +71,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     });
 
     playChimeSound();
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-    setCheckoutWhatsAppUrl(whatsappUrl);
+    window.open(getCartWhatsAppUrl(items, customer), '_blank', 'noopener,noreferrer');
+    setOrderComplete(true);
+    setTimeout(() => {
+      onClearCart();
+      setIsCheckingOut(false);
+      setOrderComplete(false);
+      setCustomer({ name: '', phone: '', address: '', city: '', pincode: '' });
+      onClose();
+    }, 1800);
   };
 
   return (
@@ -244,44 +258,50 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <ArrowRight className="w-4 h-4 text-[#C4A484]" />
                   </button>
                 ) : (
-                  <form onSubmit={handleCheckoutSubmit} className="space-y-3 pt-2">
-                    <div className="p-3 bg-[#FCFAF7] rounded border border-[#C4A484]/40 space-y-2 text-xs">
-                      <span className="text-[10px] uppercase tracking-wider text-[#A98765] font-semibold block">
-                        Delivery details
-                      </span>
-                      <input
-                        type="text"
-                        name="name"
-                        required
-                        autoComplete="name"
-                        placeholder="Full name"
-                        aria-label="Full name"
-                        className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
-                      />
-                      <input
-                        type="tel"
-                        name="phone"
-                        required
-                        autoComplete="tel"
-                        maxLength={20}
-                        placeholder="Phone number"
-                        aria-label="Phone number"
-                        className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
-                      />
-                      <textarea
-                        name="address"
-                        required
-                        autoComplete="street-address"
-                        rows={3}
-                        placeholder="Full shipping address, including city and PIN code"
-                        aria-label="Full shipping address, including city and PIN code"
-                        className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
-                      />
+                  <form onSubmit={handleCheckoutSubmit} className="space-y-3 pt-2" aria-label="WhatsApp checkout form">
+                    <div className="rounded-xl border border-[#C4A484]/45 bg-gradient-to-br from-[#FCFAF7] to-[#F5EEE4] p-4 shadow-[0_12px_35px_rgba(107,78,45,0.08)]">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div>
+                          <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#A98765]">
+                            Secure WhatsApp checkout
+                          </span>
+                          <p className="mt-1 text-[11px] leading-relaxed text-[#8E8271]">
+                            Share your delivery details and we&apos;ll confirm your order personally.
+                          </p>
+                        </div>
+                        <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#27745b]" aria-hidden="true" />
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {([
+                          ['name', 'Recipient name', 'name'],
+                          ['phone', 'WhatsApp phone number', 'tel'],
+                          ['address', 'Full shipping address', 'text'],
+                          ['city', 'City', 'address-level2'],
+                          ['pincode', 'Pincode', 'postal-code'],
+                        ] as const).map(([field, placeholder, autocomplete]) => (
+                          <label key={field} className={field === 'address' ? 'sm:col-span-2' : ''}>
+                            <span className="sr-only">{placeholder}</span>
+                            <input
+                              type={field === 'phone' || field === 'pincode' ? 'tel' : 'text'}
+                              inputMode={field === 'phone' || field === 'pincode' ? 'numeric' : undefined}
+                              autoComplete={autocomplete}
+                              required
+                              minLength={field === 'phone' ? 8 : field === 'pincode' ? 4 : 2}
+                              value={customer[field]}
+                              onChange={(event) => setCustomer((current) => ({ ...current, [field]: event.target.value }))}
+                              placeholder={placeholder}
+                              aria-label={placeholder}
+                              className="w-full rounded-lg border border-[#E6E0D6] bg-[#FAF7F2] px-3 py-2.5 text-xs text-[#1A1A1A] outline-none transition-all placeholder:text-[#8E8271] focus:border-[#A98765] focus:ring-2 focus:ring-[#C4A484]/25"
+                            />
+                          </label>
+                        ))}
+                      </div>
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full py-3 bg-[#A98765] text-[#FFFFFF] text-xs uppercase tracking-widest font-medium hover:bg-[#1A1A1A] transition-colors rounded-sm flex items-center justify-center gap-2 cursor-pointer"
+                      disabled={orderComplete}
+                      className="group w-full rounded-lg bg-[#27745b] py-3.5 text-xs font-medium uppercase tracking-[0.16em] text-white shadow-[0_10px_25px_rgba(39,116,91,0.2)] transition-all hover:-translate-y-0.5 hover:bg-[#1f604b] hover:shadow-[0_14px_30px_rgba(39,116,91,0.28)] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       <MessageCircle className="w-4 h-4" />
                       <span>Continue to WhatsApp · {orderTotalLabel}</span>

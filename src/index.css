@@ -3,29 +3,45 @@
 
 @layer base {
   :root {
-    --bg-linen: #f3eee5;
-    --text-charcoal: #28251f;
-    --accent-gold: #b69570;
-    --accent-gold-dark: #8d6d4e;
-    --surface-card: #fbf8f1;
-    --border-warm: #ded5c8;
-    --ink-muted: #777064;
+    --bg-linen: #080914;
+    --text-charcoal: #f5f0e7;
+    --accent-gold: #e6b967;
+    --accent-gold-dark: #a87532;
+    --surface-card: #111326;
+    --border-warm: rgba(230, 185, 103, .24);
+    --ink-muted: #a8a9bf;
     --moss: #626b55;
     --font-body: 'DM Sans', sans-serif;
     --font-display: 'Instrument Serif', Georgia, serif;
   }
 
+  html { scroll-behavior: smooth; }
+
   body {
     background-color: var(--bg-linen);
+    background-image: radial-gradient(circle at 20% 0%, rgba(71, 61, 145, .25), transparent 32rem), radial-gradient(circle at 90% 20%, rgba(28, 95, 161, .18), transparent 28rem);
     color: var(--text-charcoal);
     font-family: var(--font-body);
     overflow-x: hidden;
   }
 
-  h1, h2, h3, .font-serif {
-    font-family: var(--font-display);
-  }
+  h1, h2, h3, .font-serif { font-family: var(--font-display); }
 }
+
+.cosmic-shell { background: radial-gradient(circle at 50% -10%, rgba(104, 64, 179, .22), transparent 42%), #080914; }
+.cosmic-glow { box-shadow: 0 0 0 1px rgba(230,185,103,.18), 0 0 80px rgba(89,55,181,.24), inset 0 0 60px rgba(255,255,255,.025); }
+.brand-orb { animation: brand-orb-float 7s ease-in-out infinite; }
+.cosmic-shimmer { background-size: 200% 100%; animation: cosmic-shimmer 5s ease-in-out infinite; }
+.premium-glow { animation: premium-glow 4s ease-in-out infinite; }
+.premium-float { animation: premium-float 8s ease-in-out infinite; }
+.premium-line { background: linear-gradient(90deg, transparent, rgba(230,185,103,.7), transparent); background-size: 200% 100%; animation: premium-line 4s ease-in-out infinite; }
+@keyframes premium-glow { 0%,100% { box-shadow: 0 0 0 1px rgba(230,185,103,.18), 0 0 28px rgba(89,55,181,.2); } 50% { box-shadow: 0 0 0 1px rgba(230,185,103,.42), 0 0 52px rgba(89,55,181,.38); } }
+@keyframes premium-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes premium-line { 0%,100% { background-position: 0% 50%; opacity: .5; } 50% { background-position: 100% 50%; opacity: 1; } }
+@keyframes brand-orb-float { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-8px) rotate(1deg); } }
+@keyframes cosmic-shimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+/* 3D Perspective & Tarot Card flip utilities */
 
 /* 3D Perspective & Tarot Card flip utilities */
 .perspective-1000 { perspective: 1000px; }

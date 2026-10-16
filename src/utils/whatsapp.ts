@@ -29,16 +29,41 @@ export interface WhatsAppCartItem {
   quantity: number;
 }
 
-export interface CheckoutCustomerDetails {
+export interface WhatsAppCustomerDetails {
   name: string;
   phone: string;
   address: string;
+  city: string;
+  pincode: string;
 }
 
-const buildCartMessage = (
+export const getSessionBookingWhatsAppUrl = (details: {
+  name: string;
+  email: string;
+  phone: string;
+  date: string;
+  time: string;
+  topic: string;
+}): string => {
+  const message = [
+    'Hi! I would like to book a private 1:1 tarot session with Open to See Your Future.',
+    '',
+    `Name: ${details.name}`,
+    `Email: ${details.email}`,
+    `Phone: ${details.phone}`,
+    `Preferred date: ${details.date}`,
+    `Preferred time: ${details.time}`,
+    `Focus: ${details.topic}`,
+    '',
+    'Please confirm availability, payment details, and the next steps.',
+  ].join('\n');
+
+  return makeWhatsAppUrl(message);
+};
+
+export const getCartWhatsAppUrl = (
   items: WhatsAppCartItem[],
-  openingLine: string,
-  closingLine: string,
+  customer?: Partial<WhatsAppCustomerDetails>,
 ): string => {
   if (items.length === 0) {
     throw new Error('Cannot create a WhatsApp order link for an empty cart.');
@@ -83,18 +108,17 @@ export const getCartWhatsAppUrl = (items: WhatsAppCartItem[]): string =>
     items,
     'Hi! I’d like to ask about the following products from my shopping bag.',
     'Please confirm availability, shipping, and payment details.',
-  ));
-
-export const getCheckoutWhatsAppUrl = (
-  items: WhatsAppCartItem[],
-  customer: CheckoutCustomerDetails,
-): string => {
-  const customerDetails = [
-    'Hi! I’d like to place this order. Please confirm it and share the payment details.',
-    '',
-    `Name: ${customer.name.trim()}`,
-    `Phone: ${customer.phone.trim()}`,
-    `Delivery address: ${customer.address.trim()}`,
+    ...(customer
+      ? [
+          '',
+          'Customer details:',
+          `Name: ${customer.name ?? ''}`,
+          `Phone: ${customer.phone ?? ''}`,
+          `Address: ${customer.address ?? ''}`,
+          `City: ${customer.city ?? ''}`,
+          `Pincode: ${customer.pincode ?? ''}`,
+        ]
+      : []),
   ].join('\n');
 
   return makeWhatsAppUrl([
