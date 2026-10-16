@@ -250,34 +250,50 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <ArrowRight className="w-4 h-4 text-[#C4A484]" />
                   </button>
                 ) : (
-                  <form onSubmit={handleCheckoutSubmit} className="space-y-3 pt-2">
-                    <div className="p-3 bg-[#FCFAF7] rounded border border-[#C4A484]/40 space-y-2 text-xs">
-                      <span className="text-[10px] uppercase tracking-wider text-[#A98765] font-semibold block">
-                        Quick Express Checkout
-                      </span>
-                      {([
-                        ['name', 'Recipient name'],
-                        ['phone', 'WhatsApp phone number'],
-                        ['address', 'Full shipping address'],
-                        ['city', 'City'],
-                        ['pincode', 'Pincode'],
-                      ] as const).map(([field, placeholder]) => (
-                        <input
-                          key={field}
-                          type={field === 'phone' || field === 'pincode' ? 'tel' : 'text'}
-                          required
-                          value={customer[field]}
-                          onChange={(event) => setCustomer((current) => ({ ...current, [field]: event.target.value }))}
-                          placeholder={placeholder}
-                          className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A] placeholder:text-[#8E8271] focus:border-[#A98765] focus:outline-none"
-                        />
-                      ))}
+                  <form onSubmit={handleCheckoutSubmit} className="space-y-3 pt-2" aria-label="WhatsApp checkout form">
+                    <div className="rounded-xl border border-[#C4A484]/45 bg-gradient-to-br from-[#FCFAF7] to-[#F5EEE4] p-4 shadow-[0_12px_35px_rgba(107,78,45,0.08)]">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div>
+                          <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#A98765]">
+                            Secure WhatsApp checkout
+                          </span>
+                          <p className="mt-1 text-[11px] leading-relaxed text-[#8E8271]">
+                            Share your delivery details and we&apos;ll confirm your order personally.
+                          </p>
+                        </div>
+                        <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#27745b]" aria-hidden="true" />
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {([
+                          ['name', 'Recipient name', 'name'],
+                          ['phone', 'WhatsApp phone number', 'tel'],
+                          ['address', 'Full shipping address', 'text'],
+                          ['city', 'City', 'address-level2'],
+                          ['pincode', 'Pincode', 'postal-code'],
+                        ] as const).map(([field, placeholder, autocomplete]) => (
+                          <label key={field} className={field === 'address' ? 'sm:col-span-2' : ''}>
+                            <span className="sr-only">{placeholder}</span>
+                            <input
+                              type={field === 'phone' || field === 'pincode' ? 'tel' : 'text'}
+                              inputMode={field === 'phone' || field === 'pincode' ? 'numeric' : undefined}
+                              autoComplete={autocomplete}
+                              required
+                              minLength={field === 'phone' ? 8 : field === 'pincode' ? 4 : 2}
+                              value={customer[field]}
+                              onChange={(event) => setCustomer((current) => ({ ...current, [field]: event.target.value }))}
+                              placeholder={placeholder}
+                              aria-label={placeholder}
+                              className="w-full rounded-lg border border-[#E6E0D6] bg-[#FAF7F2] px-3 py-2.5 text-xs text-[#1A1A1A] outline-none transition-all placeholder:text-[#8E8271] focus:border-[#A98765] focus:ring-2 focus:ring-[#C4A484]/25"
+                            />
+                          </label>
+                        ))}
+                      </div>
                     </div>
 
                     <button
                       type="submit"
                       disabled={orderComplete}
-                      className="w-full py-3 bg-[#A98765] text-[#FFFFFF] text-xs uppercase tracking-widest font-medium hover:bg-[#1A1A1A] transition-colors rounded-sm flex items-center justify-center gap-2 cursor-pointer"
+                      className="group w-full rounded-lg bg-[#27745b] py-3.5 text-xs font-medium uppercase tracking-[0.16em] text-white shadow-[0_10px_25px_rgba(39,116,91,0.2)] transition-all hover:-translate-y-0.5 hover:bg-[#1f604b] hover:shadow-[0_14px_30px_rgba(39,116,91,0.28)] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {orderComplete ? (
                         <>
