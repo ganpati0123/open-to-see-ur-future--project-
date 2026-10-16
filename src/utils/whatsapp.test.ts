@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PRODUCTS_DATA } from '../data/productsData';
 import { formatCurrency } from './money';
-import { getCartWhatsAppUrl, getProductWhatsAppUrl } from './whatsapp';
+import {
+  getCartWhatsAppUrl,
+  getCheckoutWhatsAppUrl,
+  getProductWhatsAppUrl,
+} from './whatsapp';
 
 const whatsappNumber = '918219179738';
 
@@ -71,6 +75,37 @@ test('cart links itemize all products and keep INR and USD subtotals separate', 
 
 test('cart links reject an empty cart', () => {
   assert.throws(() => getCartWhatsAppUrl([]), /empty cart/);
+});
+
+test('checkout WhatsApp link includes customer details and itemized order', () => {
+  const product = PRODUCTS_DATA.find((item) => item.currency === 'INR');
+  assert.ok(product, 'expected an INR-priced catalog product');
+
+  const url = new URL(getCheckoutWhatsAppUrl(
+    [{ product, quantity: 2 }],
+    {
+      name: 'Asha Sharma',
+      phone: '+91 98765 43210',
+      address: '12 Lake Road, Jaipur, Rajasthan 302001',
+    },
+  ));
+  const message = url.searchParams.get('text') ?? '';
+
+  assert.equal(url.hostname, 'wa.me');
+  assert.equal(url.pathname, `/${whatsappNumber}`);
+  assert.ok(message.includes('Name: Asha Sharma'));
+  assert.ok(message.includes('Phone: +91 98765 43210'));
+  assert.ok(message.includes('Delivery address: 12 Lake Road, Jaipur, Rajasthan 302001'));
+  assert.ok(message.includes(product.name));
+  assert.ok(message.includes(`Subtotal: ${formatCurrency(product.price * 2, product.currency)}`));
+  assert.ok(message.includes('Please confirm availability, shipping charges, and payment details.'));
+});
+
+test('checkout WhatsApp link rejects an empty cart', () => {
+  assert.throws(
+    () => getCheckoutWhatsAppUrl([], { name: 'Asha', phone: '123', address: 'Jaipur' }),
+    /empty cart/,
+  );
 });
 
 test('product names are safely URL-encoded and recover from the WhatsApp message', () => {

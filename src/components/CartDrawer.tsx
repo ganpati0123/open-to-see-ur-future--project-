@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product } from '../data/productsData';
-import { X, Trash2, Plus, Minus, ArrowRight, CheckCircle, MessageCircle, ShieldCheck } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ArrowRight, MessageCircle, ShieldCheck } from 'lucide-react';
 import { playChimeSound } from '../utils/audio';
 import { formatCurrency } from '../utils/money';
-import { getCartWhatsAppUrl } from '../utils/whatsapp';
+import { getCartWhatsAppUrl, getCheckoutWhatsAppUrl } from '../utils/whatsapp';
 
 export interface CartItem {
   product: Product;
@@ -29,7 +29,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onClearCart
 }) => {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [orderComplete, setOrderComplete] = useState(false);
+  const [checkoutWhatsAppUrl, setCheckoutWhatsAppUrl] = useState<string | null>(null);
 
   const totalsByCurrency = items.reduce<Record<'USD' | 'INR', number>>(
     (totals, item) => {
@@ -53,16 +53,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     .map(({ currency, total }) => formatCurrency(total, currency))
     .join(' · ');
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const whatsappUrl = getCheckoutWhatsAppUrl(items, {
+      name: String(formData.get('name') ?? ''),
+      phone: String(formData.get('phone') ?? ''),
+      address: String(formData.get('address') ?? ''),
+    });
+
     playChimeSound();
-    setOrderComplete(true);
-    setTimeout(() => {
-      onClearCart();
-      setIsCheckingOut(false);
-      setOrderComplete(false);
-      onClose();
-    }, 3000);
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    setCheckoutWhatsAppUrl(whatsappUrl);
   };
 
   return (
@@ -244,36 +247,58 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <form onSubmit={handleCheckoutSubmit} className="space-y-3 pt-2">
                     <div className="p-3 bg-[#FCFAF7] rounded border border-[#C4A484]/40 space-y-2 text-xs">
                       <span className="text-[10px] uppercase tracking-wider text-[#A98765] font-semibold block">
-                        Quick Express Checkout
+                        Delivery details
                       </span>
                       <input
                         type="text"
+                        name="name"
                         required
-                        placeholder="Recipient Name"
+                        autoComplete="name"
+                        placeholder="Full name"
+                        aria-label="Full name"
                         className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
                       />
                       <input
-                        type="text"
+                        type="tel"
+                        name="phone"
                         required
-                        placeholder="Shipping address"
+                        autoComplete="tel"
+                        maxLength={20}
+                        placeholder="Phone number"
+                        aria-label="Phone number"
+                        className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
+                      />
+                      <textarea
+                        name="address"
+                        required
+                        autoComplete="street-address"
+                        rows={3}
+                        placeholder="Full shipping address, including city and PIN code"
+                        aria-label="Full shipping address, including city and PIN code"
                         className="w-full p-2 bg-[#FAF7F2] border border-[#E6E0D6] rounded text-xs text-[#1A1A1A]"
                       />
                     </div>
 
                     <button
                       type="submit"
-                      disabled={orderComplete}
                       className="w-full py-3 bg-[#A98765] text-[#FFFFFF] text-xs uppercase tracking-widest font-medium hover:bg-[#1A1A1A] transition-colors rounded-sm flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      {orderComplete ? (
-                        <>
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Order Confirmed!</span>
-                        </>
-                      ) : (
-                        <span>Place Order · {orderTotalLabel}</span>
-                      )}
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Continue to WhatsApp · {orderTotalLabel}</span>
                     </button>
+                    {checkoutWhatsAppUrl && (
+                      <div className="rounded border border-[#27745b]/30 bg-[#27745b]/5 p-3 text-xs leading-relaxed text-[#514d45]" role="status">
+                        WhatsApp has your order draft. Tap Send in WhatsApp to confirm your order.
+                        <a
+                          href={checkoutWhatsAppUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 block font-medium text-[#27745b] underline underline-offset-2"
+                        >
+                          Open WhatsApp order message
+                        </a>
+                      </div>
+                    )}
                   </form>
                 )}
 

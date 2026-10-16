@@ -29,7 +29,17 @@ export interface WhatsAppCartItem {
   quantity: number;
 }
 
-export const getCartWhatsAppUrl = (items: WhatsAppCartItem[]): string => {
+export interface CheckoutCustomerDetails {
+  name: string;
+  phone: string;
+  address: string;
+}
+
+const buildCartMessage = (
+  items: WhatsAppCartItem[],
+  openingLine: string,
+  closingLine: string,
+): string => {
   if (items.length === 0) {
     throw new Error('Cannot create a WhatsApp order link for an empty cart.');
   }
@@ -55,15 +65,45 @@ export const getCartWhatsAppUrl = (items: WhatsAppCartItem[]): string => {
     .map((currency) => `${currency}: ${formatCurrency(subtotals[currency], currency)}`);
 
   const message = [
-    'Hi! I’d like to ask about the following products from my shopping bag.',
+    openingLine,
     '',
     ...itemLines,
     '',
     'Subtotal by currency:',
     ...currencySubtotals,
     '',
-    'Please confirm availability, shipping, and payment details.',
+    closingLine,
   ].join('\n');
 
-  return makeWhatsAppUrl(message);
+  return message;
+};
+
+export const getCartWhatsAppUrl = (items: WhatsAppCartItem[]): string =>
+  makeWhatsAppUrl(buildCartMessage(
+    items,
+    'Hi! I’d like to ask about the following products from my shopping bag.',
+    'Please confirm availability, shipping, and payment details.',
+  ));
+
+export const getCheckoutWhatsAppUrl = (
+  items: WhatsAppCartItem[],
+  customer: CheckoutCustomerDetails,
+): string => {
+  const customerDetails = [
+    'Hi! I’d like to place this order. Please confirm it and share the payment details.',
+    '',
+    `Name: ${customer.name.trim()}`,
+    `Phone: ${customer.phone.trim()}`,
+    `Delivery address: ${customer.address.trim()}`,
+  ].join('\n');
+
+  return makeWhatsAppUrl([
+    customerDetails,
+    '',
+    buildCartMessage(
+      items,
+      'Order items:',
+      'Please confirm availability, shipping charges, and payment details.',
+    ),
+  ].join('\n'));
 };
