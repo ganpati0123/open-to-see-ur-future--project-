@@ -43,7 +43,8 @@ export const Hero: React.FC<HeroProps> = ({ onStartReading, onExploreShop }) => 
       className="cosmic-shell relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-12 pb-20 bg-grain"
     >
       {/* Ambient background glow & subtle decorative circles */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#C4A484]/10 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="premium-glow absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#C4A484]/10 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="premium-line absolute top-24 left-0 right-0 h-px pointer-events-none opacity-60" />
       <div className="absolute top-16 left-12 w-32 h-32 border border-[#C4A484]/20 rounded-full pointer-events-none -z-10 hidden lg:block" />
       <div className="absolute bottom-20 right-16 w-48 h-48 border border-[#E6E0D6] rounded-full pointer-events-none -z-10 hidden lg:block" />
 

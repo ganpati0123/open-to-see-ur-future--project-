@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Calendar, Clock, Check, Sparkles, User, Mail, MessageSquare } from 'lucide-react';
+import { X, Calendar, Clock, Check, Sparkles, User, Mail, MessageSquare, Phone, ArrowUpRight } from 'lucide-react';
 import { playChimeSound } from '../utils/audio';
+import { getSessionBookingWhatsAppUrl } from '../utils/whatsapp';
 
 interface BookSessionModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
   const [selectedTime, setSelectedTime] = useState('11:00 AM EST');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [topic, setTopic] = useState('Love & Relationship Crossroads');
   const [isBooked, setIsBooked] = useState(false);
 
@@ -29,6 +31,15 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
   const handleBooking = (e: React.FormEvent) => {
     e.preventDefault();
     playChimeSound();
+    const whatsappUrl = getSessionBookingWhatsAppUrl({
+      name,
+      email,
+      phone,
+      date: selectedDate,
+      time: selectedTime,
+      topic,
+    });
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
     setIsBooked(true);
   };
 
@@ -40,7 +51,7 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1A1A1A]/70 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-2xl bg-[#FAF7F2] rounded-xl border border-[#C4A484]/40 shadow-2xl p-6 sm:p-10 max-h-[90vh] overflow-y-auto"
+        className="premium-float relative w-full max-w-2xl bg-[#FAF7F2] rounded-2xl border border-[#C4A484]/40 shadow-2xl p-6 sm:p-10 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -60,8 +71,9 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
                 Book 1:1 Session with Neha Arora
               </h3>
               <p className="text-xs sm:text-sm text-[#1A1A1A]/70 font-light mt-1">
-                60-minute sacred video dialogue via Zoom. Includes full Celtic Cross spread, astrological transits, and personal talisman guidance.
+                A 60-minute private guidance session. Choose your preferred slot, share your details, and we&apos;ll confirm everything with you personally on WhatsApp.
               </p>
+              <div className="premium-line mt-5 h-px w-full" />
             </div>
 
             <form onSubmit={handleBooking} className="space-y-5">
@@ -111,8 +123,8 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
                 </div>
               </div>
 
-              {/* Name & Email */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Name, email & phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs text-[#8E8271] block mb-1">Your Full Name</label>
                   <div className="relative">
@@ -129,16 +141,25 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
 
                 <div>
                   <label className="text-xs text-[#8E8271] block mb-1">Email Address</label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. althea@studio.com"
-                      className="w-full px-3.5 py-2.5 rounded bg-[#FCFAF7] border border-[#E6E0D6] text-xs text-[#1A1A1A] focus:outline-none focus:border-[#A98765]"
-                    />
-                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full px-3.5 py-2.5 rounded bg-[#FCFAF7] border border-[#E6E0D6] text-xs text-[#1A1A1A] focus:outline-none focus:border-[#A98765]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#8E8271] block mb-1">WhatsApp Number</label>
+                  <input
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="w-full px-3.5 py-2.5 rounded bg-[#FCFAF7] border border-[#E6E0D6] text-xs text-[#1A1A1A] focus:outline-none focus:border-[#A98765]"
+                  />
                 </div>
               </div>
 
@@ -161,14 +182,15 @@ export const BookSessionModal: React.FC<BookSessionModalProps> = ({ isOpen, onCl
               <div className="pt-4 border-t border-[#E6E0D6] flex items-center justify-between">
                 <div>
                   <span className="text-[10px] uppercase tracking-wider text-[#8E8271] block">Session Fee</span>
-                  <span className="font-mono text-xl font-medium text-[#1A1A1A] tabular-nums">$150.00</span>
+                  <span className="font-mono text-xl font-medium text-[#1A1A1A] tabular-nums">₹12,500</span>
                 </div>
 
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-[#1A1A1A] text-[#F5F1EB] text-xs uppercase tracking-widest hover:bg-[#A98765] transition-colors rounded-sm cursor-pointer"
+                  className="premium-glow inline-flex items-center gap-2 px-8 py-3 bg-[#1A1A1A] text-[#F5F1EB] text-xs uppercase tracking-widest hover:bg-[#A98765] transition-all duration-300 rounded-sm cursor-pointer"
                 >
-                  Confirm & Reserve
+                  Send Booking on WhatsApp
+                  <ArrowUpRight className="w-4 h-4" />
                 </button>
               </div>
             </form>

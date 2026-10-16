@@ -37,6 +37,30 @@ export interface WhatsAppCustomerDetails {
   pincode: string;
 }
 
+export const getSessionBookingWhatsAppUrl = (details: {
+  name: string;
+  email: string;
+  phone: string;
+  date: string;
+  time: string;
+  topic: string;
+}): string => {
+  const message = [
+    'Hi! I would like to book a private 1:1 tarot session with Open to See Your Future.',
+    '',
+    `Name: ${details.name}`,
+    `Email: ${details.email}`,
+    `Phone: ${details.phone}`,
+    `Preferred date: ${details.date}`,
+    `Preferred time: ${details.time}`,
+    `Focus: ${details.topic}`,
+    '',
+    'Please confirm availability, payment details, and the next steps.',
+  ].join('\\n');
+
+  return makeWhatsAppUrl(message);
+};
+
 export const getCartWhatsAppUrl = (
   items: WhatsAppCartItem[],
   customer?: Partial<WhatsAppCustomerDetails>,

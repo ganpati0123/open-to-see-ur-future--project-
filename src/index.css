@@ -32,6 +32,12 @@
 .cosmic-glow { box-shadow: 0 0 0 1px rgba(230,185,103,.18), 0 0 80px rgba(89,55,181,.24), inset 0 0 60px rgba(255,255,255,.025); }
 .brand-orb { animation: brand-orb-float 7s ease-in-out infinite; }
 .cosmic-shimmer { background-size: 200% 100%; animation: cosmic-shimmer 5s ease-in-out infinite; }
+.premium-glow { animation: premium-glow 4s ease-in-out infinite; }
+.premium-float { animation: premium-float 8s ease-in-out infinite; }
+.premium-line { background: linear-gradient(90deg, transparent, rgba(230,185,103,.7), transparent); background-size: 200% 100%; animation: premium-line 4s ease-in-out infinite; }
+@keyframes premium-glow { 0%,100% { box-shadow: 0 0 0 1px rgba(230,185,103,.18), 0 0 28px rgba(89,55,181,.2); } 50% { box-shadow: 0 0 0 1px rgba(230,185,103,.42), 0 0 52px rgba(89,55,181,.38); } }
+@keyframes premium-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes premium-line { 0%,100% { background-position: 0% 50%; opacity: .5; } 50% { background-position: 100% 50%; opacity: 1; } }
 @keyframes brand-orb-float { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-8px) rotate(1deg); } }
 @keyframes cosmic-shimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
