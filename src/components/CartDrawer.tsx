@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Product } from '../data/productsData';
-import { X, Trash2, Plus, Minus, ArrowRight, CheckCircle, MessageCircle, ShieldCheck } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ArrowRight, MessageCircle, ShieldCheck } from 'lucide-react';
 import { playChimeSound } from '../utils/audio';
 import { formatCurrency } from '../utils/money';
 import { getCartWhatsAppUrl, WhatsAppCustomerDetails } from '../utils/whatsapp';
@@ -60,8 +60,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     .map(({ currency, total }) => formatCurrency(total, currency))
     .join(' · ');
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const whatsappUrl = getCheckoutWhatsAppUrl(items, {
+      name: String(formData.get('name') ?? ''),
+      phone: String(formData.get('phone') ?? ''),
+      address: String(formData.get('address') ?? ''),
+    });
+
     playChimeSound();
     window.open(getCartWhatsAppUrl(items, customer), '_blank', 'noopener,noreferrer');
     setOrderComplete(true);
@@ -295,15 +303,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       disabled={orderComplete}
                       className="group w-full rounded-lg bg-[#27745b] py-3.5 text-xs font-medium uppercase tracking-[0.16em] text-white shadow-[0_10px_25px_rgba(39,116,91,0.2)] transition-all hover:-translate-y-0.5 hover:bg-[#1f604b] hover:shadow-[0_14px_30px_rgba(39,116,91,0.28)] disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      {orderComplete ? (
-                        <>
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Order Confirmed!</span>
-                        </>
-                      ) : (
-                        <span>Place Order · {orderTotalLabel}</span>
-                      )}
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Continue to WhatsApp · {orderTotalLabel}</span>
                     </button>
+                    {checkoutWhatsAppUrl && (
+                      <div className="rounded border border-[#27745b]/30 bg-[#27745b]/5 p-3 text-xs leading-relaxed text-[#514d45]" role="status">
+                        WhatsApp has your order draft. Tap Send in WhatsApp to confirm your order.
+                        <a
+                          href={checkoutWhatsAppUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 block font-medium text-[#27745b] underline underline-offset-2"
+                        >
+                          Open WhatsApp order message
+                        </a>
+                      </div>
+                    )}
                   </form>
                 )}
 

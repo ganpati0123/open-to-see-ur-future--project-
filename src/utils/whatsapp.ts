@@ -90,13 +90,23 @@ export const getCartWhatsAppUrl = (
     .map((currency) => `${currency}: ${formatCurrency(subtotals[currency], currency)}`);
 
   const message = [
-    'Hi! I’d like to ask about the following products from my shopping bag.',
+    openingLine,
     '',
     ...itemLines,
     '',
     'Subtotal by currency:',
     ...currencySubtotals,
     '',
+    closingLine,
+  ].join('\n');
+
+  return message;
+};
+
+export const getCartWhatsAppUrl = (items: WhatsAppCartItem[]): string =>
+  makeWhatsAppUrl(buildCartMessage(
+    items,
+    'Hi! I’d like to ask about the following products from my shopping bag.',
     'Please confirm availability, shipping, and payment details.',
     ...(customer
       ? [
@@ -111,5 +121,13 @@ export const getCartWhatsAppUrl = (
       : []),
   ].join('\n');
 
-  return makeWhatsAppUrl(message);
+  return makeWhatsAppUrl([
+    customerDetails,
+    '',
+    buildCartMessage(
+      items,
+      'Order items:',
+      'Please confirm availability, shipping charges, and payment details.',
+    ),
+  ].join('\n'));
 };
