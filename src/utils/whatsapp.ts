@@ -70,6 +70,7 @@ export const getCartWhatsAppUrl = (
   }
 
   const subtotals: Record<'INR' | 'USD', number> = { INR: 0, USD: 0 };
+
   const itemLines = items.map(({ product, quantity }, index) => {
     const safeQuantity = normalizeQuantity(quantity);
     const currency = product.currency ?? 'USD';
@@ -78,10 +79,10 @@ export const getCartWhatsAppUrl = (
 
     return [
       `${index + 1}. ${product.name}`,
-      `   Category: ${product.category}`,
-      `   Quantity: ${safeQuantity}`,
-      `   Unit price: ${formatCurrency(product.price, currency)}`,
-      `   Subtotal: ${formatCurrency(lineSubtotal, currency)}`,
+      `Category: ${product.category}`,
+      `Quantity: ${safeQuantity}`,
+      `Unit price: ${formatCurrency(product.price, currency)}`,
+      `Subtotal: ${formatCurrency(lineSubtotal, currency)}`,
     ].join('\n');
   });
 
@@ -89,45 +90,31 @@ export const getCartWhatsAppUrl = (
     .filter((currency) => subtotals[currency] > 0)
     .map((currency) => `${currency}: ${formatCurrency(subtotals[currency], currency)}`);
 
-  const message = [
-    openingLine,
+  const customerLines = customer
+    ? [
+        '',
+        'Customer details:',
+        `Name: ${customer.name ?? ''}`,
+        `Phone: ${customer.phone ?? ''}`,
+        `Address: ${customer.address ?? ''}`,
+        `City: ${customer.city ?? ''}`,
+        `Pincode: ${customer.pincode ?? ''}`,
+      ]
+    : [];
+
+  const messageParts = [
+    "Hi! I’d like to ask about the following products from my shopping bag.",
     '',
     ...itemLines,
     '',
     'Subtotal by currency:',
     ...currencySubtotals,
     '',
-    closingLine,
-  ].join('\n');
+    'Please confirm availability, shipping charges, and payment details.',
+    ...customerLines,
+  ];
 
-  return message;
-};
+  const message = messageParts.join('\n');
 
-export const getCartWhatsAppUrl = (items: WhatsAppCartItem[]): string =>
-  makeWhatsAppUrl(buildCartMessage(
-    items,
-    'Hi! I’d like to ask about the following products from my shopping bag.',
-    'Please confirm availability, shipping, and payment details.',
-    ...(customer
-      ? [
-          '',
-          'Customer details:',
-          `Name: ${customer.name ?? ''}`,
-          `Phone: ${customer.phone ?? ''}`,
-          `Address: ${customer.address ?? ''}`,
-          `City: ${customer.city ?? ''}`,
-          `Pincode: ${customer.pincode ?? ''}`,
-        ]
-      : []),
-  ].join('\n');
-
-  return makeWhatsAppUrl([
-    customerDetails,
-    '',
-    buildCartMessage(
-      items,
-      'Order items:',
-      'Please confirm availability, shipping charges, and payment details.',
-    ),
-  ].join('\n'));
+  return makeWhatsAppUrl(message);
 };
