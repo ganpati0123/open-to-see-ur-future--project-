@@ -652,7 +652,7 @@ export const InteractiveReading: React.FC<InteractiveReadingProps> = ({
                   className="w-full py-3 bg-[#1A1A1A] text-[#F5F1EB] text-xs uppercase tracking-widest hover:bg-[#A98765] transition-colors rounded-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Calendar className="w-4 h-4 text-[#C4A484]" />
-                  <span>Book 1:1 Live Deep Dive ($150)</span>
+                  <span>Book 1:1 Live Deep Dive (₹12,600)</span>
                 </button>
               </div>
             </div>

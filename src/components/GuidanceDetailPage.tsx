@@ -102,7 +102,7 @@ export const GuidanceDetailPage: React.FC<GuidanceDetailPageProps> = ({
                   className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-[#e6b967] text-[#080914] text-xs font-semibold uppercase tracking-[0.18em] rounded-sm transition-all hover:bg-[#d8a74e] cursor-pointer"
                 >
                   <Calendar className="w-4 h-4" />
-                  <span>Open Booking Schedule · $150</span>
+                  <span>Open Booking Schedule · ₹12,600</span>
                 </button>
                 <button
                   type="button"

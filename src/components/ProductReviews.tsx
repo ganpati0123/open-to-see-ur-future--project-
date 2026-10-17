@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Star } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ImagePlus, Star, X } from 'lucide-react';
 
 interface ProductReview {
   id: string;
@@ -8,6 +8,7 @@ interface ProductReview {
   body: string;
   rating: number;
   date: string;
+  photo?: string;
 }
 
 interface ProductReviewsProps {
@@ -15,32 +16,6 @@ interface ProductReviewsProps {
   initialRating: number;
   initialReviewCount: number;
 }
-
-const storageKey = (productId: string) => `studio-product-reviews:${productId}`;
-
-const readReviews = (productId: string): ProductReview[] => {
-  try {
-    const raw = window.localStorage.getItem(storageKey(productId));
-    if (!raw) return [];
-    const value: unknown = JSON.parse(raw);
-    if (!Array.isArray(value)) return [];
-    return value.filter((review): review is ProductReview =>
-      Boolean(
-        review &&
-        typeof review.id === 'string' &&
-        typeof review.name === 'string' &&
-        typeof review.title === 'string' &&
-        typeof review.body === 'string' &&
-        Number.isInteger(review.rating) &&
-        review.rating >= 1 &&
-        review.rating <= 5 &&
-        typeof review.date === 'string',
-      ),
-    );
-  } catch {
-    return [];
-  }
-};
 
 const Stars = ({ value, label }: { value: number; label: string }) => (
   <span className="inline-flex items-center gap-0.5" aria-label={label}>
@@ -64,22 +39,9 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [photo, setPhoto] = useState<string | undefined>();
   const [formOpen, setFormOpen] = useState(false);
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    setReviews(readReviews(productId));
-    setFormOpen(false);
-    setMessage('');
-
-    const syncReviews = (event: StorageEvent) => {
-      if (event.key === storageKey(productId) || event.key === null) {
-        setReviews(readReviews(productId));
-      }
-    };
-    window.addEventListener('storage', syncReviews);
-    return () => window.removeEventListener('storage', syncReviews);
-  }, [productId]);
 
   const reviewCount = initialReviewCount + reviews.length;
   const averageRating = useMemo(() => {
@@ -98,21 +60,16 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
       body: body.trim(),
       rating: selectedRating,
       date: new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date()),
+      photo,
     };
-    const nextReviews = [nextReview, ...reviews];
-
-    try {
-      window.localStorage.setItem(storageKey(productId), JSON.stringify(nextReviews));
-      setReviews(nextReviews);
-      setName('');
-      setTitle('');
-      setBody('');
-      setSelectedRating(5);
-      setFormOpen(false);
-      setMessage('Your review has been saved in this browser.');
-    } catch {
-      setMessage('This browser could not save your review. It has not been added.');
-    }
+    setReviews((current) => [nextReview, ...current]);
+    setName('');
+    setTitle('');
+    setBody('');
+    setPhoto(undefined);
+    setSelectedRating(5);
+    setFormOpen(false);
+    setMessage('Your review has been added.');
   };
 
   return (
@@ -152,7 +109,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
             {formOpen ? 'Close review form' : 'Write a review'}
           </button>
           {message && <p role="status" className="mt-3 text-xs leading-5 text-[#65705b]">{message}</p>}
-          <p className="mt-3 text-[10px] leading-5 text-[#918877]">Reviews you add are stored only in this browser.</p>
+          <p className="mt-3 text-[10px] leading-5 text-[#918877]">Share a clear product photo and an honest experience to help the next shopper decide.</p>
         </div>
 
         <div>
@@ -214,6 +171,34 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                   placeholder="What should another shopper know?"
                 />
               </label>
+              <label className="mt-4 block text-xs font-medium text-[#514a3f]">
+                Add a product photo
+                <span className="mt-2 flex min-h-11 cursor-pointer items-center gap-2 border border-dashed border-[#cfc4b4] bg-white px-3 text-xs text-[#777064] hover:border-[#8d6d4e]">
+                  <ImagePlus className="h-4 w-4 text-[#8d6d4e]" aria-hidden="true" />
+                  {photo ? 'Photo selected' : 'Upload JPG or PNG'}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="sr-only"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file && file.size <= 5 * 1024 * 1024) {
+                        const reader = new FileReader();
+                        reader.onload = () => setPhoto(typeof reader.result === 'string' ? reader.result : undefined);
+                        reader.readAsDataURL(file);
+                      } else if (file) {
+                        setMessage('Please choose an image under 5 MB.');
+                      }
+                    }}
+                  />
+                </span>
+              </label>
+              {photo && (
+                <div className="relative mt-3 w-28">
+                  <img src={photo} alt="Selected review" className="aspect-square w-full object-cover" />
+                  <button type="button" onClick={() => setPhoto(undefined)} aria-label="Remove selected photo" className="absolute right-1 top-1 rounded-full bg-[#302d27] p-1 text-white"><X className="h-3 w-3" /></button>
+                </div>
+              )}
               <button
                 type="submit"
                 className="mt-5 min-h-11 bg-[#302d27] px-6 text-[10px] font-semibold uppercase tracking-[.15em] text-[#fbf8f1] transition-colors hover:bg-[#8d6d4e]"
@@ -233,6 +218,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                   </div>
                   <h3 className="mt-3 font-serif text-xl text-[#28251f]">{review.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-[#625b50]">{review.body}</p>
+                  {review.photo && <img src={review.photo} alt={`${review.name}'s product photo`} className="mt-4 max-h-64 w-full max-w-xs object-cover" />}
                   <p className="mt-3 text-[10px] uppercase tracking-[.12em] text-[#918877]">By {review.name}</p>
                 </article>
               ))}

@@ -232,13 +232,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   {orderTotals.map(({ currency, subtotal, total }) => (
                     <div key={currency} className="space-y-1">
                       <div className="flex justify-between">
-                        <span>Subtotal · {currency}</span>
+                        <span>Subtotal · INR</span>
                         <span className="font-mono text-sm text-[#1A1A1A] font-medium tabular-nums">
                           {formatCurrency(subtotal, currency)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Studio shipping · {currency}</span>
+                        <span>Studio shipping</span>
                         <span>
                           {currency === 'INR'
                             ? 'Calculated at checkout'
@@ -248,7 +248,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         </span>
                       </div>
                       <div className="flex justify-between border-t border-[#E6E0D6] pt-1.5">
-                        <span>Total · {currency}</span>
+                        <span>Total · INR</span>
                         <span className="font-mono text-sm text-[#1A1A1A] font-medium tabular-nums">
                           {formatCurrency(total, currency)}
                         </span>

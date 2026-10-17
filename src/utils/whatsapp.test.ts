@@ -8,7 +8,7 @@ import {
   getProductWhatsAppUrl,
 } from './whatsapp';
 
-const whatsappNumber = '918219179738';
+const whatsappNumber = '918278881040';
 
 test('every catalog product link includes the correct contact and item details', () => {
   assert.ok(PRODUCTS_DATA.length > 0, 'the product catalog should not be empty');
@@ -68,8 +68,8 @@ test('cart links itemize all products and keep INR and USD subtotals separate', 
       message.includes(`Subtotal: ${formatCurrency(product.price * quantity, product.currency)}`),
     );
   }
-  assert.ok(message.includes(`INR: ${formatCurrency(inrProduct.price * 2, 'INR')}`));
-  assert.ok(message.includes(`USD: ${formatCurrency(usdProduct.price * 3, 'USD')}`));
+  assert.ok(message.includes(`Total in INR: ${formatCurrency(inrProduct.price * 2, 'INR')}`));
+  assert.ok(message.includes(`Total in INR: ${formatCurrency(usdProduct.price * 3, 'USD')}`));
   assert.doesNotMatch(message, /grand total|combined total/i);
 });
 

@@ -1,7 +1,7 @@
 import type { Product } from '../data/productsData';
 import { formatCurrency } from './money';
 
-const WHATSAPP_NUMBER = '918219179738';
+const WHATSAPP_NUMBER = '918278881040';
 
 const normalizeQuantity = (quantity: number): number =>
   Number.isFinite(quantity) ? Math.max(1, Math.floor(quantity)) : 1;
@@ -81,14 +81,14 @@ export const getCartWhatsAppUrl = (
       `${index + 1}. ${product.name}`,
       `Category: ${product.category}`,
       `Quantity: ${safeQuantity}`,
-      `Unit price: ${formatCurrency(product.price, currency)}`,
-      `Subtotal: ${formatCurrency(lineSubtotal, currency)}`,
+      `Unit price: ${formatCurrency(product.price, product.currency)}`,
+      `Subtotal: ${formatCurrency(lineSubtotal, product.currency)}`,
     ].join('\n');
   });
 
   const currencySubtotals = (['INR', 'USD'] as const)
     .filter((currency) => subtotals[currency] > 0)
-    .map((currency) => `${currency}: ${formatCurrency(subtotals[currency], currency)}`);
+    .map((currency) => `Total in INR: ${formatCurrency(subtotals[currency], currency)}`);
 
   const customerLines = customer
     ? [
@@ -143,14 +143,14 @@ export const getCheckoutWhatsAppUrl = (
       `${index + 1}. ${product.name}`,
       `Category: ${product.category}`,
       `Quantity: ${safeQuantity}`,
-      `Unit price: ${formatCurrency(product.price, currency)}`,
-      `Subtotal: ${formatCurrency(lineSubtotal, currency)}`,
+      `Unit price: ${formatCurrency(product.price, product.currency)}`,
+      `Subtotal: ${formatCurrency(lineSubtotal, product.currency)}`,
     ].join('\n');
   });
 
   const currencySubtotals = (['INR', 'USD'] as const)
     .filter((currency) => subtotals[currency] > 0)
-    .map((currency) => `${currency}: ${formatCurrency(subtotals[currency], currency)}`);
+    .map((currency) => `Total in INR: ${formatCurrency(subtotals[currency], currency)}`);
 
   const customerLines = [
     'Customer details:',
