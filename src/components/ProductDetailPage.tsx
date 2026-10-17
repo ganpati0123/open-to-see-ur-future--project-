@@ -246,7 +246,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   </div>
                 </div>
                 <p className="mt-3 text-[10px] leading-5 text-[#817766]">
-                  Prices are shown in INR. Checkout securely sends your order details to our WhatsApp team for confirmation.
+                  All prices are shown in Indian rupees (₹). Checkout securely sends your order details to our WhatsApp team for confirmation.
                 </p>
               </div>
 
