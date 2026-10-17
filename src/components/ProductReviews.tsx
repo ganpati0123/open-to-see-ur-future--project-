@@ -109,7 +109,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
             {formOpen ? 'Close review form' : 'Write a review'}
           </button>
           {message && <p role="status" className="mt-3 text-xs leading-5 text-[#65705b]">{message}</p>}
-          <p className="mt-3 text-[10px] leading-5 text-[#918877]">Photo reviews are previewed in this session and can be connected to your store database next.</p>
+          <p className="mt-3 text-[10px] leading-5 text-[#918877]">Share a clear product photo and an honest experience to help the next shopper decide.</p>
         </div>
 
         <div>
