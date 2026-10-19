@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import type { ProductReview } from './ProductReviews';
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,8 +9,9 @@ import {
   ShoppingBag,
   Star,
 } from 'lucide-react';
-import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from '../data/productsData';
+import { Product } from '../data/productsData';
 import { PRODUCT_DETAIL_CONTENT } from '../data/productDetailContent';
+import { useStore } from '../context/StoreContext';
 import { formatCurrency } from '../utils/money';
 import { getProductWhatsAppUrl } from '../utils/whatsapp';
 import { ProductReviews } from './ProductReviews';
@@ -21,8 +21,6 @@ interface ProductDetailPageProps {
   onAddToCart: (product: Product, quantity: number) => void;
   onOpenProduct: (productId: string) => void;
   onNavigate: (sectionId: string) => void;
-  reviews: ProductReview[];
-  onReviewsChange: (reviews: ProductReview[]) => void;
 }
 
 const productTabs = [
@@ -37,25 +35,29 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   onAddToCart,
   onOpenProduct,
   onNavigate,
-  reviews,
-  onReviewsChange,
 }) => {
+  const { products, categories, getProductStats } = useStore();
+  const liveProduct = products.find((p) => p.id === product.id) || product;
+  const stats = getProductStats(liveProduct.id);
+  const displayRating = stats.count > 0 ? stats.rating : liveProduct.rating;
+  const displayReviewsCount = stats.count > 0 ? stats.count : liveProduct.reviewsCount;
+
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('product-overview');
-  const content = PRODUCT_DETAIL_CONTENT[product.id];
+  const content = PRODUCT_DETAIL_CONTENT[liveProduct.id];
   const gallery = content?.gallery ?? [{
-    src: product.image,
-    alt: product.name,
+    src: liveProduct.image,
+    alt: liveProduct.name,
     label: 'Product',
     kind: 'product' as const,
   }];
   const activeImage = gallery[selectedImageIndex] ?? gallery[0];
-  const category = PRODUCT_CATEGORIES.find((item) => item.label === product.category);
-  const relatedProducts = PRODUCTS_DATA
-    .filter((item) => item.category === product.category && item.id !== product.id)
+  const category = categories.find((item) => item.label === liveProduct.category);
+  const relatedProducts = products
+    .filter((item) => item.category === liveProduct.category && item.id !== liveProduct.id)
     .slice(0, 4);
-  const specifications = content?.specifications ?? product.details.map((detail, index) => ({
+  const specifications = content?.specifications ?? liveProduct.details.map((detail, index) => ({
     label: index === 0 ? 'Product detail' : `Detail ${index + 1}`,
     value: detail,
   }));
@@ -145,44 +147,44 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
           <div className="lg:sticky lg:top-24">
             <div className="border border-[#ded5c8] bg-[#fbf8f1] p-5 sm:p-7 lg:p-8">
-              <span className="shop-kicker">{product.category} · {product.tag}</span>
+              <span className="shop-kicker">{liveProduct.category} · {liveProduct.tag}</span>
               <h1 className="mt-3 font-serif text-4xl leading-[.98] text-[#28251f] sm:text-5xl">
-                {product.name}
+                {liveProduct.name}
               </h1>
 
               <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-                {product.reviewsCount > 0 ? (
+                {displayReviewsCount > 0 ? (
                   <button
                     type="button"
                     onClick={() => scrollToTab('product-reviews')}
-                    className="inline-flex items-center gap-1.5 text-xs text-[#514a3f] underline decoration-[#b69570] underline-offset-4"
-                    aria-label={`${product.rating} out of 5 stars, based on ${product.reviewsCount} ratings. View reviews.`}
+                    className="inline-flex items-center gap-1.5 text-xs text-[#514a3f] underline decoration-[#b69570] underline-offset-4 cursor-pointer"
+                    aria-label={`${displayRating} out of 5 stars, based on ${displayReviewsCount} ratings. View reviews.`}
                   >
                     <Star className="h-4 w-4 fill-[#bd8e48] text-[#bd8e48]" aria-hidden="true" />
-                    <span>{product.rating}</span>
-                    <span className="text-[#817766]">({product.reviewsCount.toLocaleString()} ratings)</span>
+                    <span>{displayRating}</span>
+                    <span className="text-[#817766]">({displayReviewsCount.toLocaleString()} {displayReviewsCount === 1 ? 'rating' : 'ratings'})</span>
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={() => scrollToTab('product-reviews')}
-                    className="text-xs text-[#817766] underline decoration-[#b69570] underline-offset-4"
+                    className="text-xs text-[#817766] underline decoration-[#b69570] underline-offset-4 cursor-pointer"
                   >
                     Be the first to review
                   </button>
                 )}
-                <span className={`inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[.12em] ${product.inStock ? 'text-[#65705b]' : 'text-[#9b4f40]'}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${product.inStock ? 'bg-[#65705b]' : 'bg-[#9b4f40]'}`} aria-hidden="true" />
-                  {product.inStock ? 'In stock' : 'Currently unavailable'}
+                <span className={`inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[.12em] ${liveProduct.inStock ? 'text-[#65705b]' : 'text-[#9b4f40]'}`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${liveProduct.inStock ? 'bg-[#65705b]' : 'bg-[#9b4f40]'}`} aria-hidden="true" />
+                  {liveProduct.inStock ? 'In stock' : 'Currently unavailable'}
                 </span>
               </div>
 
               <p className="mt-5 font-mono text-2xl tabular-nums text-[#28251f]">
-                {formatCurrency(product.price, product.currency)}
+                {formatCurrency(liveProduct.price, liveProduct.currency)}
               </p>
               <p className="mt-1 text-[11px] text-[#817766]">Price shown for one item. Shipping is calculated at checkout.</p>
               <p className="mt-5 text-sm leading-7 text-[#625b50]">
-                {content?.description ?? product.description}
+                {content?.description ?? liveProduct.description}
               </p>
 
               {content?.materials && (
@@ -210,7 +212,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       type="button"
                       onClick={() => setQuantity((current) => Math.max(1, current - 1))}
                       disabled={quantity <= 1}
-                      className="flex h-full w-11 items-center justify-center text-[#514a3f] transition-colors hover:bg-[#eee7dc] disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex h-full w-11 items-center justify-center text-[#514a3f] transition-colors hover:bg-[#eee7dc] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                       aria-label="Decrease quantity"
                     >
                       <Minus className="h-4 w-4" />
@@ -219,7 +221,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     <button
                       type="button"
                       onClick={() => setQuantity((current) => current + 1)}
-                      className="flex h-full w-11 items-center justify-center text-[#514a3f] transition-colors hover:bg-[#eee7dc]"
+                      className="flex h-full w-11 items-center justify-center text-[#514a3f] transition-colors hover:bg-[#eee7dc] cursor-pointer"
                       aria-label="Increase quantity"
                     >
                       <Plus className="h-4 w-4" />
@@ -229,29 +231,29 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <div className="grid flex-1 gap-2 sm:min-w-48 sm:grid-cols-2">
                     <button
                       type="button"
-                      onClick={() => onAddToCart(product, quantity)}
-                      disabled={!product.inStock}
-                      className="flex min-h-12 items-center justify-center gap-2 bg-[#302d27] px-3 text-[9px] font-semibold uppercase tracking-[.09em] text-[#f7f1e7] transition-colors hover:bg-[#8d6d4e] disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => onAddToCart(liveProduct, quantity)}
+                      disabled={!liveProduct.inStock}
+                      className="flex min-h-12 items-center justify-center gap-2 bg-[#302d27] px-3 text-[9px] font-semibold uppercase tracking-[.09em] text-[#f7f1e7] transition-colors hover:bg-[#8d6d4e] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
                     >
                       <ShoppingBag className="h-4 w-4" />
-                      {product.inStock
-                        ? `Add to bag · ${formatCurrency(product.price * quantity, product.currency)}`
+                      {liveProduct.inStock
+                        ? `Add to bag · ${formatCurrency(liveProduct.price * quantity, liveProduct.currency)}`
                         : 'Unavailable'}
                     </button>
                     <a
-                      href={getProductWhatsAppUrl(product, quantity)}
+                      href={getProductWhatsAppUrl(liveProduct, quantity)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Ask about ${product.name} on WhatsApp`}
+                      aria-label={`Ask about ${liveProduct.name} on WhatsApp`}
                       className="flex min-h-12 items-center justify-center gap-2 bg-[#27745b] px-3 text-[9px] font-semibold uppercase tracking-[.09em] text-white transition-colors hover:bg-[#1f604b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#27745b]"
                     >
                       <MessageCircle className="h-4 w-4" />
-                      WhatsApp
+                      <span>Order on WhatsApp</span>
                     </a>
                   </div>
                 </div>
                 <p className="mt-3 text-[10px] leading-5 text-[#817766]">
-                  All prices are shown in Indian rupees (₹). Checkout securely sends your order details to our WhatsApp team for confirmation.
+                  Prices are shown in INR. Checkout securely sends your order details to our WhatsApp team for confirmation.
                 </p>
               </div>
 
@@ -388,11 +390,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         </section>
 
         <ProductReviews
-          productId={product.id}
-          initialRating={product.rating}
-          initialReviewCount={product.reviewsCount}
-          reviews={reviews}
-          onReviewsChange={onReviewsChange}
+          productId={liveProduct.id}
+          productName={liveProduct.name}
+          initialRating={liveProduct.rating}
+          initialReviewCount={liveProduct.reviewsCount}
         />
 
         {relatedProducts.length > 0 && (

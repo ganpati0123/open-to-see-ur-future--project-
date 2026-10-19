@@ -4,7 +4,6 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import type { ProductReview } from './components/ProductReviews';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { TAROT_SPREADS, TarotSpread } from './data/tarotData';
 import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from './data/productsData';
@@ -24,31 +23,24 @@ import { ProductDetailPage } from './components/ProductDetailPage';
 import { AuthLoading } from './components/AuthShell';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { StoreProvider, useStore } from './context/StoreContext';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { AdminPage } from './pages/AdminPage';
 import { OfferingPage } from './components/OfferingPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SpreadDetailPage } from './components/SpreadDetailPage';
 import { GuidanceDetailPage } from './components/GuidanceDetailPage';
 import { EthosPage } from './components/EthosPage';
 
-const categoryFromPath = (pathname: string): string | null => {
-  const match = pathname.match(/^\/shop\/([^/]+)\/?$/);
-  if (!match) return null;
-  return PRODUCT_CATEGORIES.some((category) => category.id === match[1]) ? match[1] : null;
-};
-
-const productFromPath = (pathname: string): string | null => {
-  const match = pathname.match(/^\/product\/([^/]+)\/?$/);
-  if (!match) return null;
-  return PRODUCTS_DATA.some((product) => product.id === match[1]) ? match[1] : null;
-};
-
-function ExistingWebsite({ products, reviewsByProduct, onReviewsChange }: { products: Product[]; reviewsByProduct: Record<string, ProductReview[]>; onReviewsChange: (productId: string, reviews: ProductReview[]) => void }) {
+function ExistingWebsite() {
   const location = useLocation();
   const navigate = useNavigate();
-  const categoryId = categoryFromPath(location.pathname);
+  const { products, categories } = useStore();
+
+  const categoryMatch = location.pathname.match(/^\/shop\/([^/]+)\/?$/);
+  const categoryId = categoryMatch && categories.some((c) => c.id === categoryMatch[1]) ? categoryMatch[1] : null;
   const isShopRoot = location.pathname === '/shop' || location.pathname === '/shop/';
   const productMatch = location.pathname.match(/^\/product\/([^/]+)\/?$/);
   const requestedProductId = productMatch?.[1] ?? null;
@@ -173,7 +165,7 @@ function ExistingWebsite({ products, reviewsByProduct, onReviewsChange }: { prod
       return;
     }
 
-    const isCategory = PRODUCT_CATEGORIES.some((category) => category.id === sectionId);
+    const isCategory = categories.some((category) => category.id === sectionId);
     if (isCategory) {
       const targetPath = `/shop/${sectionId}`;
       if (location.pathname !== targetPath) navigate(targetPath);
@@ -270,8 +262,6 @@ function ExistingWebsite({ products, reviewsByProduct, onReviewsChange }: { prod
               onAddToCart={handleAddToCart}
               onOpenProduct={handleOpenProduct}
               onNavigate={handleNavigate}
-              reviews={reviewsByProduct[currentProduct.id] ?? []}
-              onReviewsChange={(reviews) => onReviewsChange(currentProduct.id, reviews)}
             />
           ) : (
             <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center">
@@ -291,7 +281,6 @@ function ExistingWebsite({ products, reviewsByProduct, onReviewsChange }: { prod
           )
         ) : (categoryId || isShopRoot) ? (
           <ShopSection
-            products={products}
             categoryId={categoryId}
             onSelectCategory={handleSelectCategory}
             onAddToCart={handleAddToCart}
@@ -323,8 +312,7 @@ function ExistingWebsite({ products, reviewsByProduct, onReviewsChange }: { prod
 
             {/* 5. Boutique landing and all available collections */}
             <ShopSection
-            products={products}
-            onAddToCart={handleAddToCart}
+              onAddToCart={handleAddToCart}
               onOpenProduct={handleOpenProduct}
               categoryId={null}
               onSelectCategory={handleSelectCategory}
@@ -373,27 +361,27 @@ const PublicOnly = ({ children }: { children: React.ReactNode }) => {
   return user ? <Navigate to="/dashboard" replace /> : children;
 };
 
-const AppRoutes = ({ products, setProducts, reviewsByProduct, onReviewsChange }: { products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>>; reviewsByProduct: Record<string, ProductReview[]>; onReviewsChange: (productId: string, reviews: ProductReview[]) => void }) => (
+const AppRoutes = () => (
   <Routes>
     <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
     <Route path="/signup" element={<PublicOnly><SignupPage /></PublicOnly>} />
+    <Route path="/admin" element={<AdminPage />} />
     <Route element={<ProtectedRoute />}>
-      <Route path="/dashboard" element={<DashboardPage products={products} onProductsChange={setProducts} />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
     </Route>
-    <Route path="*" element={<ExistingWebsite products={products} reviewsByProduct={reviewsByProduct} onReviewsChange={onReviewsChange} />} />
+    <Route path="*" element={<ExistingWebsite />} />
   </Routes>
 );
 
 export default function App() {
-  const [products, setProducts] = useState<Product[]>(PRODUCTS_DATA);
-  const [reviewsByProduct, setReviewsByProduct] = useState<Record<string, ProductReview[]>>({});
-  const onReviewsChange = (productId: string, reviews: ProductReview[]) => setReviewsByProduct((current) => ({ ...current, [productId]: reviews }));
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes products={products} setProducts={setProducts} reviewsByProduct={reviewsByProduct} onReviewsChange={onReviewsChange} />
-        </AuthProvider>
+        <StoreProvider>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </StoreProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );

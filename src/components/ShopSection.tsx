@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Check, ChevronRight, Eye, MessageCircle, ShoppingBag, Star, X } from 'lucide-react';
-import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from '../data/productsData';
+import { Product } from '../data/productsData';
+import { useStore } from '../context/StoreContext';
 import { formatCurrency } from '../utils/money';
 import { getProductWhatsAppUrl } from '../utils/whatsapp';
 import { playChimeSound } from '../utils/audio';
@@ -10,7 +11,6 @@ interface ShopSectionProps {
   onOpenProduct: (productId: string) => void;
   categoryId?: string | null;
   onSelectCategory: (categoryId: string | null) => void;
-  products?: Product[];
 }
 
 export const ShopSection: React.FC<ShopSectionProps> = ({
@@ -18,15 +18,15 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
   onOpenProduct,
   categoryId = null,
   onSelectCategory,
-  products = PRODUCTS_DATA,
 }) => {
+  const { products, categories, getProductStats } = useStore();
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
-  const selectedCategory = PRODUCT_CATEGORIES.find((category) => category.id === categoryId);
+  const selectedCategory = categories.find((category) => category.id === categoryId);
   const categoryProducts = selectedCategory
     ? products.filter((product) => product.category === selectedCategory.label)
     : products;
-  const categoriesWithProducts = PRODUCT_CATEGORIES
+  const categoriesWithProducts = categories
     .map((category) => ({
       ...category,
       products: products.filter((product) => product.category === category.label),
@@ -179,34 +179,37 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
           <div className="grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {categoryProducts.map((product) => {
               const isRecentlyAdded = addedIds.has(product.id);
+              const stats = getProductStats(product.id);
+              const displayRating = stats.count > 0 ? stats.rating : product.rating;
+              const displayCount = stats.count > 0 ? stats.count : product.reviewsCount;
+
               return (
                 <article key={product.id} className="shop-product-card group flex min-w-0 flex-col">
                   <div className="relative aspect-[4/4.5] overflow-hidden bg-[#e7dfd2]">
                     <div className="absolute inset-0 flex items-center justify-center p-5 text-center font-serif text-xl text-[#8d7355]/70" aria-hidden="true">
                       {product.name}
                     </div>
-                    <a
-                      href={getProductWhatsAppUrl(product)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Ask about ${product.name} on WhatsApp`}
-                      className="absolute inset-0 z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#8d6d4e]"
+                    <button
+                      type="button"
+                      onClick={() => onOpenProduct(product.id)}
+                      aria-label={`Open details and customer reviews for ${product.name}`}
+                      className="absolute inset-0 z-10 w-full text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#8d6d4e]"
                     >
                       <img
                         src={product.image}
                         alt={product.name}
                         loading="lazy"
-                        className="shop-product-image relative h-full w-full object-cover"
+                        className="shop-product-image relative h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                         onError={(event) => { event.currentTarget.style.display = 'none'; }}
                       />
-                    </a>
+                    </button>
                     <span className="absolute left-3 top-3 z-20 border border-white/60 bg-[#fbf8f1]/90 px-2.5 py-1 text-[9px] font-medium uppercase tracking-[.14em] text-[#494239] backdrop-blur-sm">
                       {product.tag}
                     </span>
                     <button
                       type="button"
                       onClick={() => setQuickViewProduct(product)}
-                      className="absolute bottom-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-[#fbf8f1]/95 text-[#28251f] opacity-100 shadow-sm transition hover:bg-[#28251f] hover:text-[#fbf8f1] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+                      className="absolute bottom-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-[#fbf8f1]/95 text-[#28251f] opacity-100 shadow-sm transition hover:bg-[#28251f] hover:text-[#fbf8f1] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 cursor-pointer"
                       aria-label={`Quick view ${product.name}`}
                     >
                       <Eye className="h-4 w-4" strokeWidth={1.6} />
@@ -216,26 +219,38 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
                   <div className="flex flex-1 flex-col p-4 sm:p-5">
                     <div className="mb-2 flex min-h-4 items-center justify-between gap-3">
                       <span className="text-[9px] uppercase tracking-[.15em] text-[#8a806f]">{product.category}</span>
-                      {product.reviewsCount > 0 && (
-                        <span className="flex shrink-0 items-center gap-1 text-[10px] text-[#6e665a]" aria-label={`${product.rating} out of 5, ${product.reviewsCount} reviews`}>
+                      {displayCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenProduct(product.id)}
+                          className="flex shrink-0 items-center gap-1 text-[10px] text-[#6e665a] hover:text-[#bd8e48] cursor-pointer"
+                          aria-label={`${displayRating} out of 5, ${displayCount} reviews`}
+                        >
                           <Star className="h-3 w-3 fill-[#b69570] text-[#b69570]" />
-                          <span>{product.rating}</span>
-                          <span className="text-[#999080]">({product.reviewsCount})</span>
-                        </span>
+                          <span>{displayRating}</span>
+                          <span className="text-[#999080]">({displayCount})</span>
+                        </button>
                       )}
                     </div>
                     <h3 className="font-serif text-[1.55rem] leading-[1.06] text-[#28251f] transition-colors group-hover:text-[#8d6d4e]">
-                      <a
-                        href={getProductWhatsAppUrl(product)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`Ask about ${product.name} on WhatsApp`}
-                        className="text-left transition-colors hover:text-[#8d6d4e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8d6d4e]"
+                      <button
+                        type="button"
+                        onClick={() => onOpenProduct(product.id)}
+                        className="text-left font-serif transition-colors hover:text-[#8d6d4e] cursor-pointer"
                       >
                         {product.name}
-                      </a>
+                      </button>
                     </h3>
                     <p className="mt-2 line-clamp-3 flex-1 text-xs leading-5 text-[#746d61]">{product.description}</p>
+                    <div className="mt-2 flex items-center justify-between text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => onOpenProduct(product.id)}
+                        className="text-[#8d6d4e] hover:underline uppercase text-[9px] tracking-wider font-medium"
+                      >
+                        View Details & Reviews →
+                      </button>
+                    </div>
                     <div className="mt-5 border-t border-[#ded5c8]/80 pt-4">
                       <span className="font-mono text-sm tabular-nums text-[#28251f]">
                         {formatCurrency(product.price, product.currency)}

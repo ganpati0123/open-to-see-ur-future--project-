@@ -4,6 +4,7 @@ import {
   ChevronDown,
   Menu,
   MessageCircle,
+  ShieldCheck,
   ShoppingBag,
   Sparkles,
   UserRound,
@@ -12,7 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { PRODUCT_CATEGORIES, PRODUCTS_DATA } from '../data/productsData';
+import { useStore } from '../context/StoreContext';
 import { playChimeSound } from '../utils/audio';
 
 interface NavbarProps {
@@ -24,10 +25,6 @@ interface NavbarProps {
   onNavigate: (sectionId: string) => void;
 }
 
-const availableCategories = PRODUCT_CATEGORIES.filter((category) =>
-  PRODUCTS_DATA.some((product) => product.category === category.label),
-);
-
 export const Navbar: React.FC<NavbarProps> = ({
   cartCount,
   onOpenCart,
@@ -36,6 +33,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleSound,
   onNavigate,
 }) => {
+  const { categories, products } = useStore();
+  const availableCategories = categories.filter((category) =>
+    products.some((product) => product.category === category.label),
+  );
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [shopMenuOpen, setShopMenuOpen] = useState(false);
   const [mobileShopOpen, setMobileShopOpen] = useState(false);
@@ -117,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       {category.label}
                       <span className="text-[10px] text-[#9b907f]">
-                        {PRODUCTS_DATA.filter((product) => product.category === category.label).length}
+                        {products.filter((product) => product.category === category.label).length}
                       </span>
                     </button>
                   ))}
@@ -150,6 +152,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4 text-[#999080]" />}
           </button>
+          <Link
+            to="/admin"
+            aria-label="Studio Admin Portal"
+            title="Studio Admin Portal (Add & Remove Goods, Live Price Changes, Reviews Moderation)"
+            className="flex items-center gap-1.5 rounded-full border border-[#e6b967]/40 bg-[#e6b967]/10 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#e6b967] hover:bg-[#e6b967]/20 transition-all"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 text-[#e6b967]" />
+            <span className="hidden md:inline">Admin</span>
+          </Link>
           <Link
             to="/login"
             aria-label="Sign in or open your dashboard"
@@ -248,6 +259,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#c7c8d8]"
             >
               Sign in or open your dashboard
+            </Link>
+            <Link
+              to="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between border-b border-[#ded5c8] py-3 text-left text-xs uppercase tracking-[.14em] text-[#8d6d4e] font-semibold"
+            >
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-[#8d6d4e]" />
+                <span>Studio Admin Suite</span>
+              </span>
+              <span className="text-[10px] bg-[#8d6d4e]/10 px-2 py-0.5 rounded text-[#8d6d4e]">Pro Max</span>
             </Link>
           </nav>
           <div className="mx-auto mt-4 flex max-w-2xl gap-3">

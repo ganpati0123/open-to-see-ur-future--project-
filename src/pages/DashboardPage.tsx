@@ -8,9 +8,11 @@ import { useAuth } from '../context/AuthContext';
 import { PRODUCT_CATEGORIES, Product } from '../data/productsData';
 import { formatCurrency } from '../utils/money';
 
+import { useStore } from '../context/StoreContext';
+
 interface DashboardPageProps {
-  products: Product[];
-  onProductsChange: (products: Product[]) => void;
+  products?: Product[];
+  onProductsChange?: (products: Product[]) => void;
 }
 
 const emptyProduct: Omit<Product, 'id'> = {
@@ -18,7 +20,9 @@ const emptyProduct: Omit<Product, 'id'> = {
   description: '', details: [], image: '/products/selenite-towers.png', inStock: true,
 };
 
-export const DashboardPage = ({ products, onProductsChange }: DashboardPageProps) => {
+export const DashboardPage = ({ products: propProducts, onProductsChange }: DashboardPageProps = {}) => {
+  const store = useStore();
+  const products = propProducts ?? store.products;
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState<'overview' | 'products'>('overview');
@@ -37,11 +41,31 @@ export const DashboardPage = ({ products, onProductsChange }: DashboardPageProps
     event.preventDefault();
     const normalized = { ...draft, name: draft.name.trim(), description: draft.description.trim(), details: draft.details.filter(Boolean) };
     if (!normalized.name || normalized.price <= 0) return;
-    if (editingId) onProductsChange(products.map((product) => product.id === editingId ? { ...normalized, id: editingId } : product));
-    else onProductsChange([{ ...normalized, id: `${normalized.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}` }, ...products]);
+    if (editingId) {
+      if (onProductsChange) {
+        onProductsChange(products.map((product) => product.id === editingId ? { ...normalized, id: editingId } : product));
+      } else {
+        store.updateProduct(editingId, normalized);
+      }
+    } else {
+      if (onProductsChange) {
+        onProductsChange([{ ...normalized, id: `${normalized.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}` }, ...products]);
+      } else {
+        store.addProduct(normalized);
+      }
+    }
     setEditorOpen(false); setNotice(editingId ? 'Product updated and live in the shop.' : 'Product added and live in the shop.');
   };
-  const removeProduct = (id: string) => { if (window.confirm('Remove this product from the live shop?')) { onProductsChange(products.filter((product) => product.id !== id)); setNotice('Product removed from the live shop.'); } };
+  const removeProduct = (id: string) => {
+    if (window.confirm('Remove this product from the live shop?')) {
+      if (onProductsChange) {
+        onProductsChange(products.filter((product) => product.id !== id));
+      } else {
+        store.deleteProduct(id);
+      }
+      setNotice('Product removed from the live shop.');
+    }
+  };
   const logout = async () => { await signOut(auth); navigate('/login', { replace: true }); };
 
   return (

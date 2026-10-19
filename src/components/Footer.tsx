@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Instagram, Mail, Compass, Sparkles, Heart, MessageCircle } from 'lucide-react';
 import { playChimeSound } from '../utils/audio';
 
@@ -205,6 +206,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBookSession })
             <p className="text-xs text-[#C4A484] pt-2">
               Guide: Neha Arora
             </p>
+            <div className="pt-2">
+              <Link
+                to="/admin"
+                className="inline-flex items-center gap-1.5 rounded border border-[#C4A484]/40 bg-[#262320] px-3 py-1.5 text-[11px] text-[#C4A484] hover:bg-[#C4A484] hover:text-[#1C1A18] transition-colors"
+              >
+                <span>Studio Admin Suite</span>
+                <span>→</span>
+              </Link>
+            </div>
           </div>
         </div>
 
