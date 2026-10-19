@@ -10,6 +10,7 @@ interface ShopSectionProps {
   onOpenProduct: (productId: string) => void;
   categoryId?: string | null;
   onSelectCategory: (categoryId: string | null) => void;
+  products?: Product[];
 }
 
 export const ShopSection: React.FC<ShopSectionProps> = ({
@@ -17,17 +18,18 @@ export const ShopSection: React.FC<ShopSectionProps> = ({
   onOpenProduct,
   categoryId = null,
   onSelectCategory,
+  products = PRODUCTS_DATA,
 }) => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const selectedCategory = PRODUCT_CATEGORIES.find((category) => category.id === categoryId);
   const categoryProducts = selectedCategory
-    ? PRODUCTS_DATA.filter((product) => product.category === selectedCategory.label)
-    : PRODUCTS_DATA;
+    ? products.filter((product) => product.category === selectedCategory.label)
+    : products;
   const categoriesWithProducts = PRODUCT_CATEGORIES
     .map((category) => ({
       ...category,
-      products: PRODUCTS_DATA.filter((product) => product.category === category.label),
+      products: products.filter((product) => product.category === category.label),
     }))
     .filter((category) => category.products.length > 0);
 

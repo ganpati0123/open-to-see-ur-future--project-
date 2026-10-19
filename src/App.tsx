@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import type { ProductReview } from './components/ProductReviews';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { TAROT_SPREADS, TarotSpread } from './data/tarotData';
 import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from './data/productsData';
@@ -44,14 +45,14 @@ const productFromPath = (pathname: string): string | null => {
   return PRODUCTS_DATA.some((product) => product.id === match[1]) ? match[1] : null;
 };
 
-function ExistingWebsite() {
+function ExistingWebsite({ products, reviewsByProduct, onReviewsChange }: { products: Product[]; reviewsByProduct: Record<string, ProductReview[]>; onReviewsChange: (productId: string, reviews: ProductReview[]) => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const categoryId = categoryFromPath(location.pathname);
   const isShopRoot = location.pathname === '/shop' || location.pathname === '/shop/';
   const productMatch = location.pathname.match(/^\/product\/([^/]+)\/?$/);
   const requestedProductId = productMatch?.[1] ?? null;
-  const currentProduct = requestedProductId ? PRODUCTS_DATA.find((p) => p.id === requestedProductId) : null;
+  const currentProduct = requestedProductId ? products.find((p) => p.id === requestedProductId) : null;
 
   // Dedicated Spread routes: /spread/:spreadId
   const spreadMatch = location.pathname.match(/^\/spread\/([^/]+)\/?$/);
@@ -269,6 +270,8 @@ function ExistingWebsite() {
               onAddToCart={handleAddToCart}
               onOpenProduct={handleOpenProduct}
               onNavigate={handleNavigate}
+              reviews={reviewsByProduct[currentProduct.id] ?? []}
+              onReviewsChange={(reviews) => onReviewsChange(currentProduct.id, reviews)}
             />
           ) : (
             <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center">
@@ -288,6 +291,7 @@ function ExistingWebsite() {
           )
         ) : (categoryId || isShopRoot) ? (
           <ShopSection
+            products={products}
             categoryId={categoryId}
             onSelectCategory={handleSelectCategory}
             onAddToCart={handleAddToCart}
@@ -319,7 +323,8 @@ function ExistingWebsite() {
 
             {/* 5. Boutique landing and all available collections */}
             <ShopSection
-              onAddToCart={handleAddToCart}
+            products={products}
+            onAddToCart={handleAddToCart}
               onOpenProduct={handleOpenProduct}
               categoryId={null}
               onSelectCategory={handleSelectCategory}
@@ -368,23 +373,26 @@ const PublicOnly = ({ children }: { children: React.ReactNode }) => {
   return user ? <Navigate to="/dashboard" replace /> : children;
 };
 
-const AppRoutes = () => (
+const AppRoutes = ({ products, setProducts, reviewsByProduct, onReviewsChange }: { products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>>; reviewsByProduct: Record<string, ProductReview[]>; onReviewsChange: (productId: string, reviews: ProductReview[]) => void }) => (
   <Routes>
     <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
     <Route path="/signup" element={<PublicOnly><SignupPage /></PublicOnly>} />
     <Route element={<ProtectedRoute />}>
-      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/dashboard" element={<DashboardPage products={products} onProductsChange={setProducts} />} />
     </Route>
-    <Route path="*" element={<ExistingWebsite />} />
+    <Route path="*" element={<ExistingWebsite products={products} reviewsByProduct={reviewsByProduct} onReviewsChange={onReviewsChange} />} />
   </Routes>
 );
 
 export default function App() {
+  const [products, setProducts] = useState<Product[]>(PRODUCTS_DATA);
+  const [reviewsByProduct, setReviewsByProduct] = useState<Record<string, ProductReview[]>>({});
+  const onReviewsChange = (productId: string, reviews: ProductReview[]) => setReviewsByProduct((current) => ({ ...current, [productId]: reviews }));
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <AppRoutes products={products} setProducts={setProducts} reviewsByProduct={reviewsByProduct} onReviewsChange={onReviewsChange} />
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
