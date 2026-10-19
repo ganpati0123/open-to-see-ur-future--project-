@@ -44,14 +44,14 @@ const productFromPath = (pathname: string): string | null => {
   return PRODUCTS_DATA.some((product) => product.id === match[1]) ? match[1] : null;
 };
 
-function ExistingWebsite() {
+function ExistingWebsite({ products }: { products: Product[] }) {
   const location = useLocation();
   const navigate = useNavigate();
   const categoryId = categoryFromPath(location.pathname);
   const isShopRoot = location.pathname === '/shop' || location.pathname === '/shop/';
   const productMatch = location.pathname.match(/^\/product\/([^/]+)\/?$/);
   const requestedProductId = productMatch?.[1] ?? null;
-  const currentProduct = requestedProductId ? PRODUCTS_DATA.find((p) => p.id === requestedProductId) : null;
+  const currentProduct = requestedProductId ? products.find((p) => p.id === requestedProductId) : null;
 
   // Dedicated Spread routes: /spread/:spreadId
   const spreadMatch = location.pathname.match(/^\/spread\/([^/]+)\/?$/);
@@ -288,6 +288,7 @@ function ExistingWebsite() {
           )
         ) : (categoryId || isShopRoot) ? (
           <ShopSection
+            products={products}
             categoryId={categoryId}
             onSelectCategory={handleSelectCategory}
             onAddToCart={handleAddToCart}
@@ -319,7 +320,8 @@ function ExistingWebsite() {
 
             {/* 5. Boutique landing and all available collections */}
             <ShopSection
-              onAddToCart={handleAddToCart}
+            products={products}
+            onAddToCart={handleAddToCart}
               onOpenProduct={handleOpenProduct}
               categoryId={null}
               onSelectCategory={handleSelectCategory}
@@ -368,23 +370,24 @@ const PublicOnly = ({ children }: { children: React.ReactNode }) => {
   return user ? <Navigate to="/dashboard" replace /> : children;
 };
 
-const AppRoutes = () => (
+const AppRoutes = ({ products, setProducts }: { products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>> }) => (
   <Routes>
     <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
     <Route path="/signup" element={<PublicOnly><SignupPage /></PublicOnly>} />
     <Route element={<ProtectedRoute />}>
-      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/dashboard" element={<DashboardPage products={products} onProductsChange={setProducts} />} />
     </Route>
-    <Route path="*" element={<ExistingWebsite />} />
+    <Route path="*" element={<ExistingWebsite products={products} />} />
   </Routes>
 );
 
 export default function App() {
+  const [products, setProducts] = useState<Product[]>(PRODUCTS_DATA);
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <AppRoutes products={products} setProducts={setProducts} />
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>
