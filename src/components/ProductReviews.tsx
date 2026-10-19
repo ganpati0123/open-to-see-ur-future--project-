@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ImagePlus, Star, X } from 'lucide-react';
 
-interface ProductReview {
+export interface ProductReview {
   id: string;
   name: string;
   title: string;
@@ -15,6 +15,9 @@ interface ProductReviewsProps {
   productId: string;
   initialRating: number;
   initialReviewCount: number;
+  reviews: ProductReview[];
+  onReviewsChange: (reviews: ProductReview[]) => void;
+  canModerate?: boolean;
 }
 
 const Stars = ({ value, label }: { value: number; label: string }) => (
@@ -33,8 +36,10 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   productId,
   initialRating,
   initialReviewCount,
+  reviews,
+  onReviewsChange,
+  canModerate = false,
 }) => {
-  const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [selectedRating, setSelectedRating] = useState(5);
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
@@ -62,7 +67,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
       date: new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date()),
       photo,
     };
-    setReviews((current) => [nextReview, ...current]);
+    onReviewsChange([nextReview, ...reviews]);
     setName('');
     setTitle('');
     setBody('');
@@ -219,7 +224,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                   <h3 className="mt-3 font-serif text-xl text-[#28251f]">{review.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-[#625b50]">{review.body}</p>
                   {review.photo && <img src={review.photo} alt={`${review.name}'s product photo`} className="mt-4 max-h-64 w-full max-w-xs object-cover" />}
-                  <p className="mt-3 text-[10px] uppercase tracking-[.12em] text-[#918877]">By {review.name}</p>
+                  <div className="mt-3 flex items-center justify-between gap-3"><p className="text-[10px] uppercase tracking-[.12em] text-[#918877]">By {review.name}</p>{canModerate && <button type="button" onClick={() => onReviewsChange(reviews.filter((item) => item.id !== review.id))} className="text-[10px] font-semibold uppercase tracking-[.12em] text-[#9b4f40] hover:underline">Delete review</button>}</div>
                 </article>
               ))}
             </div>

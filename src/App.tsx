@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import type { ProductReview } from './components/ProductReviews';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { TAROT_SPREADS, TarotSpread } from './data/tarotData';
 import { PRODUCT_CATEGORIES, PRODUCTS_DATA, Product } from './data/productsData';
@@ -44,7 +45,7 @@ const productFromPath = (pathname: string): string | null => {
   return PRODUCTS_DATA.some((product) => product.id === match[1]) ? match[1] : null;
 };
 
-function ExistingWebsite({ products }: { products: Product[] }) {
+function ExistingWebsite({ products, reviewsByProduct, onReviewsChange }: { products: Product[]; reviewsByProduct: Record<string, ProductReview[]>; onReviewsChange: (productId: string, reviews: ProductReview[]) => void }) {
   const location = useLocation();
   const navigate = useNavigate();
   const categoryId = categoryFromPath(location.pathname);
@@ -269,6 +270,8 @@ function ExistingWebsite({ products }: { products: Product[] }) {
               onAddToCart={handleAddToCart}
               onOpenProduct={handleOpenProduct}
               onNavigate={handleNavigate}
+              reviews={reviewsByProduct[currentProduct.id] ?? []}
+              onReviewsChange={(reviews) => onReviewsChange(currentProduct.id, reviews)}
             />
           ) : (
             <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center">
@@ -370,24 +373,26 @@ const PublicOnly = ({ children }: { children: React.ReactNode }) => {
   return user ? <Navigate to="/dashboard" replace /> : children;
 };
 
-const AppRoutes = ({ products, setProducts }: { products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>> }) => (
+const AppRoutes = ({ products, setProducts, reviewsByProduct, onReviewsChange }: { products: Product[]; setProducts: React.Dispatch<React.SetStateAction<Product[]>>; reviewsByProduct: Record<string, ProductReview[]>; onReviewsChange: (productId: string, reviews: ProductReview[]) => void }) => (
   <Routes>
     <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
     <Route path="/signup" element={<PublicOnly><SignupPage /></PublicOnly>} />
     <Route element={<ProtectedRoute />}>
       <Route path="/dashboard" element={<DashboardPage products={products} onProductsChange={setProducts} />} />
     </Route>
-    <Route path="*" element={<ExistingWebsite products={products} />} />
+    <Route path="*" element={<ExistingWebsite products={products} reviewsByProduct={reviewsByProduct} onReviewsChange={onReviewsChange} />} />
   </Routes>
 );
 
 export default function App() {
   const [products, setProducts] = useState<Product[]>(PRODUCTS_DATA);
+  const [reviewsByProduct, setReviewsByProduct] = useState<Record<string, ProductReview[]>>({});
+  const onReviewsChange = (productId: string, reviews: ProductReview[]) => setReviewsByProduct((current) => ({ ...current, [productId]: reviews }));
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes products={products} setProducts={setProducts} />
+          <AppRoutes products={products} setProducts={setProducts} reviewsByProduct={reviewsByProduct} onReviewsChange={onReviewsChange} />
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

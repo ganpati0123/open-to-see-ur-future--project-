@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { ProductReview } from './ProductReviews';
 import {
   ArrowLeft,
   ArrowRight,
@@ -20,6 +21,8 @@ interface ProductDetailPageProps {
   onAddToCart: (product: Product, quantity: number) => void;
   onOpenProduct: (productId: string) => void;
   onNavigate: (sectionId: string) => void;
+  reviews: ProductReview[];
+  onReviewsChange: (reviews: ProductReview[]) => void;
 }
 
 const productTabs = [
@@ -34,6 +37,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   onAddToCart,
   onOpenProduct,
   onNavigate,
+  reviews,
+  onReviewsChange,
 }) => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -386,6 +391,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           productId={product.id}
           initialRating={product.rating}
           initialReviewCount={product.reviewsCount}
+          reviews={reviews}
+          onReviewsChange={onReviewsChange}
         />
 
         {relatedProducts.length > 0 && (
