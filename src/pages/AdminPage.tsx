@@ -164,22 +164,48 @@ export const AdminPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // Handle image upload from computer file picker
+  // Handle image upload from device with high-quality canvas compression
   const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 3 * 1024 * 1024) {
-      setFormError('Image size exceeds 3MB. Please select a smaller photo.');
+    if (file.size > 12 * 1024 * 1024) {
+      setFormError('Image size exceeds 12MB. Please select a smaller photo.');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      if (base64) {
-        setFormData((prev) => ({ ...prev, image: base64 }));
-      }
+      const dataUrl = event.target?.result as string;
+      if (!dataUrl) return;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 960;
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/jpeg', 0.84);
+          setFormData((prev) => ({ ...prev, image: compressed }));
+          setFormError('');
+        } else {
+          setFormData((prev) => ({ ...prev, image: dataUrl }));
+        }
+      };
+      img.src = dataUrl;
     };
     reader.readAsDataURL(file);
   };
@@ -1708,14 +1734,17 @@ export const AdminPage: React.FC = () => {
                   <span className="text-[10px] uppercase tracking-wider text-[#a8a9bf]">Or select a sacred studio asset:</span>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {[
-                      { label: 'Selenite Tower', path: '/public/products/selenite-towers.png' },
-                      { label: 'Chakra Tree', path: '/public/products/seven-chakra-gemstone-tree.png' },
-                      { label: 'Amethyst Ganesha', path: '/public/products/amethyst-ganesha.png' },
-                      { label: 'Crystal Angels', path: '/public/products/crystal-angels.png' },
-                      { label: 'Aries Bracelet', path: '/public/products/bracelet-aries.png' },
-                      { label: 'Taurus Bracelet', path: '/public/products/bracelet-taurus.png' },
+                      { label: 'Taurus Bracelet', path: '/products/zodiac-bracelets/taurus-zodiac-bracelet.jpeg' },
+                      { label: 'Pisces Bracelet', path: '/products/zodiac-bracelets/pisces-zodiac-bracelet.jpeg' },
+                      { label: 'Libra Bracelet', path: '/products/zodiac-bracelets/libra-zodiac-bracelet.jpeg' },
+                      { label: 'Cancer Bracelet', path: '/products/zodiac-bracelets/cancer-zodiac-bracelet.jpeg' },
+                      { label: 'Aquarius Bracelet', path: '/products/zodiac-bracelets/aquarius-zodiac-bracelet.jpeg' },
+                      { label: 'Scorpio Bracelet', path: '/products/zodiac-bracelets/scorpio-zodiac-bracelet.jpeg' },
+                      { label: 'Aries Bracelet', path: '/products/bracelet-aries.png' },
+                      { label: 'Selenite Tower', path: '/products/selenite-towers.png' },
+                      { label: 'Chakra Tree', path: '/products/seven-chakra-gemstone-tree.png' },
+                      { label: 'Amethyst Ganesha', path: '/products/amethyst-ganesha.png' },
                       { label: 'Ritual Candle', path: '/images/boutique_ritual_candle_1790673095609.jpg' },
-                      { label: 'Zodiac Plate', path: '/public/products/zodiac-selenite-plate.png' },
                     ].map((preset) => (
                       <button
                         key={preset.label}

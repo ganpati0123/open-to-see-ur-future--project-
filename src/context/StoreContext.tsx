@@ -63,7 +63,7 @@ interface StoreContextType {
   clearVisitorLogs: () => void;
 }
 
-const PRODUCTS_STORAGE_KEY = 'studio_store_products_v2';
+const PRODUCTS_STORAGE_KEY = 'studio_store_products_v3';
 const REVIEWS_STORAGE_KEY = 'studio_store_reviews_v2';
 const ADMIN_SESSION_KEY = 'studio_store_admin_session';
 const ADMIN_PASSCODE = 'admin123'; // Default studio passcode
@@ -266,13 +266,35 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [analytics]);
 
-  // Load products from localStorage or default
+  // Load products from localStorage or default, ensuring latest zodiac bracelets and images are synced
   const [products, setProducts] = useState<Product[]>(() => {
     try {
-      const stored = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+      const stored = localStorage.getItem(PRODUCTS_STORAGE_KEY) || localStorage.getItem('studio_store_products_v2');
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const map = new Map<string, Product>();
+          parsed.forEach((p: Product) => {
+            if (p && p.id) map.set(p.id, p);
+          });
+          // Ensure all updated zodiac bracelets and defaults are injected or upgraded
+          PRODUCTS_DATA.forEach((def) => {
+            const existing = map.get(def.id);
+            if (!existing) {
+              map.set(def.id, def);
+            } else if (def.id.startsWith('bracelet-')) {
+              // Update with clean image and description without selenite plate
+              map.set(def.id, {
+                ...existing,
+                name: def.name,
+                image: def.image,
+                description: def.description,
+                details: def.details,
+              });
+            }
+          });
+          return Array.from(map.values());
+        }
       }
     } catch (e) {
       console.warn('Failed to parse stored products', e);
@@ -376,6 +398,26 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error('Failed to store reviews', e);
     }
   }, [reviews]);
+
+  // Real-time cross-tab synchronization so admin changes reflect immediately everywhere
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === PRODUCTS_STORAGE_KEY && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          if (Array.isArray(parsed)) setProducts(parsed);
+        } catch {}
+      }
+      if (event.key === REVIEWS_STORAGE_KEY && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          if (Array.isArray(parsed)) setReviews(parsed);
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // Admin login / logout (Supports ID + Password or single passcode)
   const loginAdmin = (loginId: string, password?: string): boolean => {
