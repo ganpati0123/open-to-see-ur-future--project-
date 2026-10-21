@@ -252,6 +252,28 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     </a>
                   </div>
                 </div>
+
+                {/* Direct Rating & Review Action */}
+                <div className="mt-3.5 pt-3 border-t border-[#ded5c8]/60 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      scrollToTab('product-reviews');
+                      window.setTimeout(() => {
+                        const trigger = document.getElementById('write-review-btn');
+                        if (trigger) trigger.click();
+                      }, 200);
+                    }}
+                    className="inline-flex items-center gap-2 rounded-sm border border-[#b69570] bg-[#fbf8f1] px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#8d6d4e] transition-all hover:bg-[#8d6d4e] hover:text-white cursor-pointer shadow-xs"
+                  >
+                    <Star className="h-3.5 w-3.5 fill-[#bd8e48] text-[#bd8e48]" />
+                    <span>Rate & Review This Product</span>
+                  </button>
+                  <span className="text-[11px] text-[#817766]">
+                    {displayReviewsCount} review{displayReviewsCount === 1 ? '' : 's'} · {displayRating} ★
+                  </span>
+                </div>
+
                 <p className="mt-3 text-[10px] leading-5 text-[#817766]">
                   Prices are shown in INR. Checkout securely sends your order details to our WhatsApp team for confirmation.
                 </p>

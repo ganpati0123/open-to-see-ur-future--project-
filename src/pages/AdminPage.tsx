@@ -42,12 +42,14 @@ import {
   X,
 } from 'lucide-react';
 import { useStore, CustomerReview, VisitorSessionLog } from '../context/StoreContext';
+import { useAuth } from '../context/AuthContext';
 import { Product, PRODUCT_CATEGORIES } from '../data/productsData';
 import { formatCurrency } from '../utils/money';
 import { playChimeSound } from '../utils/audio';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const {
     products,
     categories,
@@ -57,6 +59,7 @@ export const AdminPage: React.FC = () => {
     deleteProduct,
     resetProductsToDefault,
     deleteReview,
+    deleteVisitorLog,
     isAdmin,
     loginAdmin,
     logoutAdmin,
@@ -927,16 +930,32 @@ export const AdminPage: React.FC = () => {
                           <span className="line-clamp-2">{vis.lastAction}</span>
                         </td>
 
-                        {/* Status */}
+                        {/* Status & Remove */}
                         <td className="py-3.5 pl-3 pr-4 text-right">
-                          {vis.isActive ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#25D366]">
-                              <span className="h-1.5 w-1.5 rounded-full bg-[#25D366] animate-pulse" />
-                              Active now
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-[#a8a9bf]">{vis.timestamp}</span>
-                          )}
+                          <div className="flex items-center justify-end gap-2">
+                            {vis.isActive ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#25D366]">
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#25D366] animate-pulse" />
+                                Active now
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-[#a8a9bf]">{vis.timestamp}</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`Remove visitor record for ${vis.name}?`)) {
+                                  deleteVisitorLog(vis.id);
+                                  playChimeSound();
+                                  showSuccess(`Visitor record for ${vis.name} removed.`);
+                                }
+                              }}
+                              className="rounded p-1 text-[#9b4f40]/70 hover:text-[#d48372] hover:bg-[#9b4f40]/20 transition-colors cursor-pointer"
+                              title="Delete this seeker session"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -947,8 +966,10 @@ export const AdminPage: React.FC = () => {
               {filteredVisitors.length === 0 && (
                 <div className="p-12 text-center text-xs text-[#a8a9bf]">
                   <Users className="mx-auto h-8 w-8 text-[#e6b967]/50" />
-                  <p className="mt-2 text-sm text-[#f5f0e7]">No visitors matched your search</p>
-                  <p className="mt-1">Try clearing the search query or simulating live traffic.</p>
+                  <p className="mt-2 text-sm font-medium text-[#f5f0e7]">No mock members — 100% Clean Seeker Registry</p>
+                  <p className="mt-1.5 max-w-md mx-auto text-[#a8a9bf] leading-relaxed">
+                    All old seeded dummy members have been removed. Fresh seekers who register or log into the boutique will appear here in real time with their email, device, and active stay duration.
+                  </p>
                 </div>
               )}
             </div>
@@ -1242,6 +1263,30 @@ export const AdminPage: React.FC = () => {
                             >
                               <ExternalLink className="h-3.5 w-3.5" />
                             </Link>
+
+                            {/* Quick Photo Remove / Change */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (product.image) {
+                                  if (window.confirm(`Remove picture from “${product.name}”?`)) {
+                                    updateProduct(product.id, { image: '' });
+                                    playChimeSound();
+                                    showSuccess(`Picture removed from ${product.name}.`);
+                                  }
+                                } else {
+                                  handleOpenEditModal(product);
+                                }
+                              }}
+                              className={`rounded-lg p-1.5 transition-colors cursor-pointer ${
+                                product.image
+                                  ? 'text-[#e6b967] hover:bg-[#e6b967]/15'
+                                  : 'text-[#817766] hover:bg-white/10'
+                              }`}
+                              title={product.image ? 'Click to Remove or Replace Picture' : 'Add Product Picture'}
+                            >
+                              <Camera className="h-3.5 w-3.5" />
+                            </button>
 
                             {/* Edit */}
                             <button
@@ -1762,17 +1807,38 @@ export const AdminPage: React.FC = () => {
                   </div>
                 </div>
 
-                {formData.image && (
-                  <div className="mt-3 flex items-center gap-3 rounded-lg border border-[#e6b967]/20 bg-[#080914] p-2.5">
-                    <img
-                      src={formData.image}
-                      alt="Preview"
-                      className="h-16 w-16 rounded object-cover border border-[#e6b967]/30"
-                    />
-                    <div className="text-xs text-[#a8a9bf]">
-                      <span className="text-[#e6b967] block">Image Preview Loaded</span>
-                      <span className="text-[10px]">Will be displayed across product cards and detail page</span>
+                {formData.image ? (
+                  <div className="mt-3 flex items-center justify-between rounded-lg border border-[#e6b967]/30 bg-[#080914] p-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={formData.image}
+                        alt="Preview"
+                        className="h-16 w-16 rounded object-cover border border-[#e6b967]/40 shadow-sm"
+                      />
+                      <div className="text-xs text-[#a8a9bf]">
+                        <span className="text-[#e6b967] font-medium block">Current Product Photo</span>
+                        <span className="text-[10px] text-[#25D366]">✓ Ready for live storefront</span>
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({ ...prev, image: '' }));
+                        playChimeSound();
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-[#9b4f40]/50 bg-[#9b4f40]/20 px-3 py-2 text-xs font-medium text-[#d48372] hover:bg-[#9b4f40] hover:text-white transition-all cursor-pointer"
+                      title="Clear picture from this product"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Remove Picture</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex items-center justify-between rounded-lg border border-dashed border-[#e6b967]/25 bg-[#080914]/60 p-3 text-xs text-[#a8a9bf]">
+                    <span className="flex items-center gap-2">
+                      <ImageIcon className="h-4 w-4 text-[#e6b967]" />
+                      No picture assigned. Upload from device or choose a preset above.
+                    </span>
                   </div>
                 )}
               </div>

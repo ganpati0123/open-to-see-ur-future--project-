@@ -361,16 +361,35 @@ const PublicOnly = ({ children }: { children: React.ReactNode }) => {
   return user ? <Navigate to="/dashboard" replace /> : children;
 };
 
+const AuthSessionSyncer = () => {
+  const { user } = useAuth();
+  const { recordUserSession } = useStore();
+
+  useEffect(() => {
+    if (user) {
+      recordUserSession({
+        name: user.displayName || (user.email ? user.email.split('@')[0] : 'Registered Seeker'),
+        email: user.email,
+      });
+    }
+  }, [user, recordUserSession]);
+
+  return null;
+};
+
 const AppRoutes = () => (
-  <Routes>
-    <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
-    <Route path="/signup" element={<PublicOnly><SignupPage /></PublicOnly>} />
-    <Route path="/admin" element={<AdminPage />} />
-    <Route element={<ProtectedRoute />}>
-      <Route path="/dashboard" element={<DashboardPage />} />
-    </Route>
-    <Route path="*" element={<ExistingWebsite />} />
-  </Routes>
+  <>
+    <AuthSessionSyncer />
+    <Routes>
+      <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
+      <Route path="/signup" element={<PublicOnly><SignupPage /></PublicOnly>} />
+      <Route path="/admin" element={<AdminPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+      </Route>
+      <Route path="*" element={<ExistingWebsite />} />
+    </Routes>
+  </>
 );
 
 export default function App() {

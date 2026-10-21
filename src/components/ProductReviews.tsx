@@ -46,7 +46,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   productId,
   productName = 'Sacred Offering',
 }) => {
-  const { getProductReviews, getProductStats, addReview, markReviewHelpful } = useStore();
+  const { getProductReviews, getProductStats, addReview, markReviewHelpful, recordUserSession } = useStore();
 
   const reviews = getProductReviews(productId);
   const stats = getProductStats(productId);
@@ -54,6 +54,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
   const [formOpen, setFormOpen] = useState(false);
   const [selectedRating, setSelectedRating] = useState(5);
   const [name, setName] = useState('');
+  const [reviewerEmail, setReviewerEmail] = useState('');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
@@ -109,14 +110,22 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
       verified: true,
     });
 
+    if (reviewerEmail.trim()) {
+      recordUserSession({
+        name: name.trim(),
+        email: reviewerEmail.trim(),
+      });
+    }
+
     playChimeSound();
     setName('');
+    setReviewerEmail('');
     setTitle('');
     setBody('');
     setPhotos([]);
     setSelectedRating(5);
     setFormOpen(false);
-    setSuccessMessage('Thank you. Your sacred review and photo have been published to this listing.');
+    setSuccessMessage('Thank you. Your sacred review and rating have been published to this listing.');
 
     setTimeout(() => {
       setSuccessMessage('');
@@ -220,6 +229,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
 
           <div className="mt-6 flex flex-col gap-3">
             <button
+              id="write-review-btn"
               type="button"
               onClick={() => setFormOpen((open) => !open)}
               className="flex min-h-12 w-full items-center justify-center gap-2 rounded-sm bg-[#302d27] px-6 text-xs font-semibold uppercase tracking-[0.15em] text-[#fbf8f1] transition-all hover:bg-[#8d6d4e] shadow-sm cursor-pointer"
@@ -261,7 +271,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
               {/* Star rating selector */}
               <div className="mt-5">
                 <label className="block text-xs font-medium uppercase tracking-wider text-[#514a3f]">
-                  Rating Selection
+                  Rating Selection (Click stars to rate)
                 </label>
                 <div className="mt-2 flex items-center gap-2" role="radiogroup" aria-label="Rating">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -287,15 +297,17 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                       ? '4 / 5 · Highly Recommended'
                       : selectedRating === 3
                       ? '3 / 5 · Balanced Resonance'
-                      : `${selectedRating} / 5 Stars`}
+                      : selectedRating === 2
+                      ? '2 / 5 · Mild Resonance'
+                      : '1 / 5 · Needs Realignment'}
                   </span>
                 </div>
               </div>
 
-              {/* Name & Title */}
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {/* Name, Email & Title */}
+              <div className="mt-5 grid gap-4 sm:grid-cols-3">
                 <label className="block text-xs font-medium text-[#514a3f]">
-                  Your Name
+                  Your Name *
                   <input
                     required
                     value={name}
@@ -305,12 +317,22 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({
                   />
                 </label>
                 <label className="block text-xs font-medium text-[#514a3f]">
-                  Review Headline
+                  Your Email <span className="text-[#918877] font-normal">(optional)</span>
+                  <input
+                    type="email"
+                    value={reviewerEmail}
+                    onChange={(e) => setReviewerEmail(e.target.value)}
+                    placeholder="e.g. you@gmail.com"
+                    className="mt-1.5 min-h-11 w-full rounded-sm border border-[#cfc4b4] bg-white px-3 text-sm text-[#28251f] outline-none focus:border-[#8d6d4e]"
+                  />
+                </label>
+                <label className="block text-xs font-medium text-[#514a3f]">
+                  Review Headline *
                   <input
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g. Calming presence in my home"
+                    placeholder="e.g. Calming resonance & authentic stone"
                     className="mt-1.5 min-h-11 w-full rounded-sm border border-[#cfc4b4] bg-white px-3 text-sm text-[#28251f] outline-none focus:border-[#8d6d4e]"
                   />
                 </label>

@@ -449,6 +449,25 @@ export const DashboardPage = ({ products: propProducts, onProductsChange }: Dash
                     </span>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => {
+                          if (product.image && window.confirm(`Remove picture from “${product.name}”?`)) {
+                            store.updateProduct(product.id, { image: '' });
+                            setNotice(`Picture removed from “${product.name}”.`);
+                          } else {
+                            openEdit(product);
+                          }
+                        }}
+                        aria-label={`Photo for ${product.name}`}
+                        className={`rounded-lg border p-2 transition-colors cursor-pointer ${
+                          product.image
+                            ? 'border-[#e6b967]/30 text-[#e6b967] hover:bg-[#e6b967]/10'
+                            : 'border-white/10 text-[#a8a9bf] hover:text-white'
+                        }`}
+                        title={product.image ? 'Remove / Change Photo' : 'Add Photo'}
+                      >
+                        <ImageIcon className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => openEdit(product)}
                         aria-label={`Edit ${product.name}`}
                         className="rounded-lg border border-white/10 p-2 text-[#a8a9bf] hover:text-white hover:border-[#e6b967]/50 cursor-pointer"
@@ -620,20 +639,38 @@ export const DashboardPage = ({ products: propProducts, onProductsChange }: Dash
                   </div>
                 </div>
 
-                {/* Live Thumbnail Preview */}
-                {draft.image && (
-                  <div className="mt-3.5 flex items-center gap-3 rounded-lg border border-white/10 bg-[#111326] p-2.5">
-                    <img
-                      src={draft.image}
-                      alt="Product preview"
-                      className="size-16 rounded-md object-cover border border-[#e6b967]/40 bg-black/40"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span className="block text-xs font-semibold text-[#e6b967] flex items-center gap-1">
-                        <Check className="h-3 w-3" /> Image Ready & Synced
-                      </span>
-                      <p className="truncate text-[10px] text-[#a8a9bf] font-mono mt-0.5">{draft.image.slice(0, 50)}...</p>
+                {/* Live Thumbnail Preview & Remove Action */}
+                {draft.image ? (
+                  <div className="mt-3.5 flex items-center justify-between rounded-lg border border-white/10 bg-[#111326] p-2.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={draft.image}
+                        alt="Product preview"
+                        className="size-16 rounded-md object-cover border border-[#e6b967]/40 bg-black/40 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <span className="block text-xs font-semibold text-[#e6b967] flex items-center gap-1">
+                          <Check className="h-3 w-3" /> Image Ready & Synced
+                        </span>
+                        <p className="truncate text-[10px] text-[#a8a9bf] font-mono mt-0.5 max-w-[200px]">{draft.image}</p>
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setDraft((prev) => ({ ...prev, image: '' }))}
+                      className="inline-flex items-center gap-1 rounded-lg border border-[#e39b8f]/40 bg-[#e39b8f]/10 px-2.5 py-1.5 text-xs text-[#e39b8f] hover:bg-[#e39b8f] hover:text-black transition-colors cursor-pointer shrink-0"
+                      title="Clear photo from this product"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      <span>Remove Photo</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-3.5 flex items-center justify-between rounded-lg border border-dashed border-white/20 bg-white/5 p-3 text-xs text-[#a8a9bf]">
+                    <span className="flex items-center gap-2">
+                      <ImageIcon className="h-4 w-4 text-[#e6b967]" />
+                      No photo attached. Upload from device or pick a preset above.
+                    </span>
                   </div>
                 )}
               </div>

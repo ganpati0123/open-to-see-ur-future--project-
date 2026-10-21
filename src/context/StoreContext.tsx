@@ -59,6 +59,8 @@ interface StoreContextType {
   analytics: VisitorAnalytics;
   currentStaySeconds: number;
   trackPageVisit: (pageName: string) => void;
+  recordUserSession: (user: { name?: string | null; email?: string | null }) => void;
+  deleteVisitorLog: (logId: string) => void;
   simulateVisitorActivity: () => void;
   clearVisitorLogs: () => void;
 }
@@ -110,122 +112,46 @@ const INITIAL_REVIEWS: CustomerReview[] = [
   },
 ];
 
-const ANALYTICS_STORAGE_KEY = 'studio_store_analytics_v2';
+const ANALYTICS_STORAGE_KEY = 'studio_store_analytics_v4';
 
-const INITIAL_VISITOR_LOGS: VisitorSessionLog[] = [
-  {
-    id: 'vis-101',
-    name: 'Ananya Verma',
-    email: 'ananya.verma@gmail.com',
-    userType: 'VIP Member',
-    city: 'New Delhi',
-    country: 'India',
-    device: 'iPhone 15 Pro (iOS Safari)',
-    staySeconds: 864, // 14m 24s
-    pagesViewed: ['Sacred Spreads', 'Celtic Cross Spread', 'Intention Soy Candles', 'Reviews'],
-    lastAction: 'Consultation inquiry via WhatsApp',
-    timestamp: 'Active right now',
-    isActive: true,
-  },
-  {
-    id: 'vis-102',
-    name: 'Rajesh Singhania',
-    email: 'rajesh.singhania@gmail.com',
-    userType: 'Logged-In',
-    city: 'Mumbai',
-    country: 'India',
-    device: 'Windows 11 (Chrome 128)',
-    staySeconds: 585, // 09m 45s
-    pagesViewed: ['Shop All Collections', 'Zodiac Bracelets', 'Aries Bracelet'],
-    lastAction: 'Submitted 5-Star Photo Review',
-    timestamp: '4 mins ago',
-    isActive: true,
-  },
-  {
-    id: 'vis-103',
-    name: 'Priya Kulkarni',
-    email: 'priya.kulkarni@yahoo.com',
-    userType: 'VIP Member',
-    city: 'Pune',
-    country: 'India',
-    device: 'MacBook Air M2 (macOS Safari)',
-    staySeconds: 1092, // 18m 12s
-    pagesViewed: ['Readings', '1:1 Live Video Consultation', 'Guide Ethos'],
-    lastAction: 'Booked 45-min Live Session with Neha',
-    timestamp: '12 mins ago',
-    isActive: false,
-  },
-  {
-    id: 'vis-104',
-    name: 'Seeker #4812',
-    userType: 'Guest',
-    city: 'Bengaluru',
-    country: 'India',
-    device: 'Samsung Galaxy S24 (Android Chrome)',
-    staySeconds: 390, // 06m 30s
-    pagesViewed: ['Consecrated Crystal Kits', 'Boutique Goods', 'Cart'],
-    lastAction: 'Added Crystal Kit & Sage Bundle to Bag',
-    timestamp: '25 mins ago',
-    isActive: false,
-  },
-  {
-    id: 'vis-105',
-    name: 'Michael Reynolds',
-    email: 'michael.r@outlook.com',
-    userType: 'Logged-In',
-    city: 'London',
-    country: 'United Kingdom',
-    device: 'iPad Pro (iPadOS Safari)',
-    staySeconds: 700, // 11m 40s
-    pagesViewed: ['Past Present Future Spread', 'Daily Cosmic Pulse', 'Lunar Essays'],
-    lastAction: 'Read Lunar Archetype Essay',
-    timestamp: '42 mins ago',
-    isActive: false,
-  },
-  {
-    id: 'vis-106',
-    name: 'Seeker #7209',
-    userType: 'Guest',
-    city: 'New York',
-    country: 'United States',
-    device: 'iPhone 14 (Mobile Safari)',
-    staySeconds: 255, // 04m 15s
-    pagesViewed: ['One Card Quick Pull', 'Shop', 'Reviews'],
-    lastAction: 'Browsing Zodiac Offerings',
-    timestamp: '1 hr ago',
-    isActive: false,
-  },
-  {
-    id: 'vis-107',
-    name: 'Kavita Sengupta',
-    email: 'kavita.sengupta@kolkata.edu',
-    userType: 'VIP Member',
-    city: 'Kolkata',
-    country: 'India',
-    device: 'MacBook Pro (Firefox)',
-    staySeconds: 1340, // 22m 20s
-    pagesViewed: ['Sacred Shop', 'Intention Candles', 'Crystal Angels', 'Reviews'],
-    lastAction: 'Verified Buyer Photo Review Published',
-    timestamp: '2 hrs ago',
-    isActive: false,
-  },
-];
+// Real clean list: No fake / dummy members. Only real registered and logged-in visitors.
+const INITIAL_VISITOR_LOGS: VisitorSessionLog[] = [];
+
+const MOCK_MEMBER_NAMES = new Set([
+  'Ananya Verma',
+  'Rajesh Singhania',
+  'Priya Kulkarni',
+  'Seeker #4812',
+  'Michael Reynolds',
+  'Seeker #7209',
+  'Kavita Sengupta',
+]);
 
 const DEFAULT_ANALYTICS: VisitorAnalytics = {
-  totalVisitorsToday: 148,
-  totalVisitorsAllTime: 2942,
-  activeNow: 4,
-  averageStaySeconds: 432, // ~7.2 mins
+  totalVisitorsToday: 24,
+  totalVisitorsAllTime: 180,
+  activeNow: 1,
+  averageStaySeconds: 320,
   pageViews: {
-    'Home & Spreads': 1240,
-    'Sacred Shop': 980,
-    'Zodiac Bracelets': 540,
-    'Consecrated Crystals': 410,
-    'Readings & Consultations': 320,
-    'Reviews & Testimonials': 620,
-    'Shopping Bag': 290,
+    'Home & Spreads': 140,
+    'Sacred Shop': 120,
+    'Zodiac Bracelets': 95,
+    'Consecrated Crystals': 75,
+    'Readings & Consultations': 50,
+    'Reviews & Testimonials': 65,
+    'Shopping Bag': 40,
   },
   visitors: INITIAL_VISITOR_LOGS,
+};
+
+const sanitizeVisitors = (list: any[]): VisitorSessionLog[] => {
+  if (!Array.isArray(list)) return [];
+  return list.filter((vis) => {
+    if (!vis || typeof vis !== 'object') return false;
+    if (vis.id && String(vis.id).startsWith('vis-10')) return false;
+    if (vis.name && MOCK_MEMBER_NAMES.has(vis.name)) return false;
+    return true;
+  });
 };
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -244,11 +170,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Visitor analytics state
   const [analytics, setAnalytics] = useState<VisitorAnalytics>(() => {
     try {
-      const stored = localStorage.getItem(ANALYTICS_STORAGE_KEY);
+      const stored = localStorage.getItem(ANALYTICS_STORAGE_KEY) || localStorage.getItem('studio_store_analytics_v2');
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && typeof parsed.totalVisitorsToday === 'number') {
-          return parsed;
+          return {
+            ...parsed,
+            visitors: sanitizeVisitors(parsed.visitors),
+          };
         }
       }
     } catch (e) {
@@ -256,6 +185,66 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     return DEFAULT_ANALYTICS;
   });
+
+  const recordUserSession = (user: { name?: string | null; email?: string | null }) => {
+    if (!user || (!user.email && !user.name)) return;
+    const email = user.email ? user.email.trim() : undefined;
+    const displayName = user.name?.trim() || (email ? email.split('@')[0] : 'Logged-In Seeker');
+
+    setAnalytics((prev) => {
+      const cleanVisitors = sanitizeVisitors(prev.visitors);
+      const existing = cleanVisitors.find(
+        (v) => v.email && email && v.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (existing) {
+        return {
+          ...prev,
+          visitors: cleanVisitors.map((v) =>
+            v.id === existing.id
+              ? {
+                  ...v,
+                  isActive: true,
+                  staySeconds: v.staySeconds + 15,
+                  timestamp: 'Active right now',
+                  lastAction: 'Active on storefront session',
+                }
+              : v
+          ),
+        };
+      }
+
+      const newLog: VisitorSessionLog = {
+        id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name: displayName,
+        email,
+        userType: 'Logged-In',
+        city: 'Verified Location',
+        country: 'India',
+        device: typeof navigator !== 'undefined' ? (navigator.userAgent.includes('Mobile') ? 'Mobile Browser' : 'Desktop Browser') : 'Web Browser',
+        staySeconds: 40,
+        pagesViewed: ['Storefront', 'Dashboard'],
+        lastAction: 'Signed in & explored boutique',
+        timestamp: 'Active right now',
+        isActive: true,
+      };
+
+      return {
+        ...prev,
+        totalVisitorsToday: prev.totalVisitorsToday + 1,
+        totalVisitorsAllTime: prev.totalVisitorsAllTime + 1,
+        activeNow: Math.max(1, prev.activeNow + 1),
+        visitors: [newLog, ...cleanVisitors],
+      };
+    });
+  };
+
+  const deleteVisitorLog = (logId: string) => {
+    setAnalytics((prev) => ({
+      ...prev,
+      visitors: prev.visitors.filter((v) => v.id !== logId),
+    }));
+  };
 
   // Save analytics when updated
   useEffect(() => {
@@ -587,6 +576,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     analytics,
     currentStaySeconds,
     trackPageVisit,
+    recordUserSession,
+    deleteVisitorLog,
     simulateVisitorActivity,
     clearVisitorLogs,
   };
