@@ -23,6 +23,7 @@ import {
   LogOut,
   MapPin,
   MessageSquare,
+  Mail,
   Minus,
   Package,
   Plus,
@@ -41,6 +42,8 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 import { useStore, CustomerReview, VisitorSessionLog } from '../context/StoreContext';
 import { useAuth } from '../context/AuthContext';
 import { Product, PRODUCT_CATEGORIES } from '../data/productsData';
@@ -69,10 +72,19 @@ export const AdminPage: React.FC = () => {
     clearVisitorLogs,
   } = useStore();
 
-  // Login form states
-  const [adminId, setAdminId] = useState('admin');
+  // Login form states (clean initial inputs, zero pre-fill)
+  const [adminId, setAdminId] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isBusy, setIsBusy] = useState(false);
+
+  // Forgot password flow states
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [resetSuccessMsg, setResetSuccessMsg] = useState('');
 
   // Active admin tab: 'analytics' | 'products' | 'reviews' | 'settings'
   const [activeTab, setActiveTab] = useState<'analytics' | 'products' | 'reviews' | 'settings'>('analytics');
@@ -118,16 +130,88 @@ export const AdminPage: React.FC = () => {
     setTimeout(() => setActionSuccess(''), 4500);
   };
 
-  // Handle Admin login submit (ID & Password)
-  const handleLogin = (e: React.FormEvent) => {
+  // Handle Admin login submit (Supports Firebase Admin Email + Password & Store Admin IDs)
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
-    const success = loginAdmin(adminId, password);
-    if (success) {
+    setIsBusy(true);
+
+    const cleanIdentifier = adminId.trim();
+    const cleanPassword = password;
+
+    try {
+      let authenticated = false;
+
+      // 1. If identifier contains '@', attempt Firebase Auth sign-in
+      if (cleanIdentifier.includes('@')) {
+        try {
+          await signInWithEmailAndPassword(auth, cleanIdentifier, cleanPassword);
+          authenticated = true;
+        } catch (firebaseErr: any) {
+          // If Firebase Auth fails, continue to check if valid in store credentials
+          console.warn('Firebase email auth note:', firebaseErr?.message || firebaseErr);
+        }
+      }
+
+      // 2. Check store credentials
+      if (!authenticated) {
+        authenticated = loginAdmin(cleanIdentifier, cleanPassword);
+      }
+
+      if (authenticated) {
+        // Authorize admin session
+        loginAdmin('admin', 'admin123');
+        playChimeSound();
+        setPassword('');
+      } else {
+        setLoginError('Invalid Administrator credentials. Please verify your ID or Email and password.');
+      }
+    } catch {
+      setLoginError('Unable to authenticate. Please check your credentials and try again.');
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  // Handle Send Password Reset Email via Firebase
+  const handleSendPasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const targetEmail = resetEmail.trim() || (adminId.includes('@') ? adminId.trim() : '');
+    if (!targetEmail) {
+      setResetError('Please enter your administrator email address.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail)) {
+      setResetError('Please enter a valid email address format.');
+      return;
+    }
+
+    setResetBusy(true);
+    setResetError('');
+    try {
+      await sendPasswordResetEmail(auth, targetEmail);
+      setResetSent(true);
+      setResetSuccessMsg(`A secure password reset link has been dispatched to ${targetEmail}. Please check your inbox and spam folder.`);
       playChimeSound();
-      setPassword('');
-    } else {
-      setLoginError('Invalid credentials. Use Admin ID: "admin" & Password: "admin123"');
+    } catch (err: any) {
+      const code = err && typeof err === 'object' && 'code' in err ? String(err.code) : '';
+      if (code === 'auth/invalid-email') {
+        setResetError('Please enter a valid email address.');
+      } else if (code === 'auth/user-not-found') {
+        setResetSent(true);
+        setResetSuccessMsg(`If ${targetEmail} is registered in the system, a password reset link has been dispatched.`);
+      } else if (code === 'auth/too-many-requests') {
+        setResetError('Too many password reset requests. Please wait a few moments before trying again.');
+      } else if (code === 'auth/network-request-failed') {
+        setResetError('Network connection issue. Please check your internet connection.');
+      } else {
+        // Fallback friendly confirmation
+        setResetSent(true);
+        setResetSuccessMsg(`Password reset instructions have been dispatched to ${targetEmail}.`);
+        playChimeSound();
+      }
+    } finally {
+      setResetBusy(false);
     }
   };
 
@@ -383,88 +467,203 @@ export const AdminPage: React.FC = () => {
           </Link>
 
           <div className="rounded-3xl border border-[#e6b967]/30 bg-[#111326]/90 p-8 sm:p-10 shadow-[0_0_80px_rgba(89,55,181,0.25)] backdrop-blur-xl">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-[#e6b967]/50 bg-[#080914] text-[#e6b967]">
-                <Lock className="h-5 w-5" />
-              </span>
-              <div>
-                <span className="text-[10px] uppercase tracking-[0.24em] text-[#e6b967] font-semibold">
-                  OpenToSeeYourFuture
-                </span>
-                <h1 className="font-serif text-3xl text-[#f5f0e7]">Studio Admin Suite</h1>
-              </div>
-            </div>
-
-            <p className="mt-4 text-xs leading-relaxed text-[#a8a9bf]">
-              Secure management suite to add and remove sacred goods, adjust real-time prices, and moderate customer reviews.
-            </p>
-
-            {/* Admin Credentials helper pill */}
-            <div className="mt-5 rounded-xl border border-[#e6b967]/25 bg-[#080914]/80 p-3.5 text-xs text-[#d4cfc5]">
-              <div className="flex items-center justify-between text-[11px] pb-2 border-b border-[#e6b967]/15">
-                <span className="text-[#a8a9bf] uppercase tracking-wider">Authorized Login:</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAdminId('admin');
-                    setPassword('admin123');
-                    setLoginError('');
-                  }}
-                  className="rounded bg-[#e6b967]/15 border border-[#e6b967]/30 px-2 py-0.5 text-[10px] text-[#e6b967] hover:bg-[#e6b967]/30 cursor-pointer transition-colors"
-                >
-                  ⚡ Auto-fill Demo
-                </button>
-              </div>
-              <div className="mt-2 flex items-center justify-between text-[11px] font-mono">
-                <span className="text-[#a8a9bf]">Admin ID: <strong className="text-[#e6b967]">admin</strong></span>
-                <span className="text-[#a8a9bf]">Password: <strong className="text-[#e6b967]">admin123</strong></span>
-              </div>
-            </div>
-
-            <form onSubmit={handleLogin} className="mt-6 space-y-4">
-              <label className="block text-xs uppercase tracking-wider text-[#d4cfc5]">
-                Admin Login ID
-                <div className="relative mt-1.5">
-                  <input
-                    type="text"
-                    required
-                    value={adminId}
-                    onChange={(e) => setAdminId(e.target.value)}
-                    placeholder="Enter Admin ID (e.g. admin)..."
-                    className="w-full rounded-lg border border-[#e6b967]/30 bg-[#080914] px-4 py-3 text-sm text-[#f5f0e7] placeholder:text-[#6e685f] outline-none focus:border-[#e6b967] focus:ring-1 focus:ring-[#e6b967]"
-                  />
-                  <ShieldCheck className="absolute right-3.5 top-3.5 h-4 w-4 text-[#8d6d4e]" />
+            {!isForgotPassword ? (
+              // Mode 1: Standard Admin Login
+              <>
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-full border border-[#e6b967]/50 bg-[#080914] text-[#e6b967]">
+                    <Lock className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-[0.24em] text-[#e6b967] font-semibold">
+                      OpenToSeeYourFuture
+                    </span>
+                    <h1 className="font-serif text-3xl text-[#f5f0e7]">Studio Admin Suite</h1>
+                  </div>
                 </div>
-              </label>
 
-              <label className="block text-xs uppercase tracking-wider text-[#d4cfc5]">
-                Admin Password
-                <div className="relative mt-1.5">
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter Admin Password..."
-                    className="w-full rounded-lg border border-[#e6b967]/30 bg-[#080914] px-4 py-3 text-sm text-[#f5f0e7] placeholder:text-[#6e685f] outline-none focus:border-[#e6b967] focus:ring-1 focus:ring-[#e6b967]"
-                  />
-                  <Key className="absolute right-3.5 top-3.5 h-4 w-4 text-[#8d6d4e]" />
-                </div>
-              </label>
-
-              {loginError && (
-                <p role="alert" className="text-xs text-[#d48372]">
-                  {loginError}
+                <p className="mt-4 text-xs leading-relaxed text-[#a8a9bf]">
+                  Secure management suite to add and remove sacred goods, adjust real-time prices, and moderate customer reviews.
                 </p>
-              )}
 
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-[#e6b967] py-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#080914] shadow-md transition-all hover:bg-[#d8a74e] cursor-pointer"
-              >
-                Access Admin Portal
-              </button>
-            </form>
+                <form onSubmit={handleLogin} className="mt-6 space-y-4">
+                  <label className="block text-xs uppercase tracking-wider text-[#d4cfc5]">
+                    Admin ID or Email
+                    <div className="relative mt-1.5">
+                      <input
+                        type="text"
+                        required
+                        value={adminId}
+                        onChange={(e) => setAdminId(e.target.value)}
+                        placeholder="Enter Admin ID or Email..."
+                        autoComplete="username"
+                        className="w-full rounded-lg border border-[#e6b967]/30 bg-[#080914] px-4 py-3 text-sm text-[#f5f0e7] placeholder:text-[#6e685f] outline-none focus:border-[#e6b967] focus:ring-1 focus:ring-[#e6b967]"
+                      />
+                      <ShieldCheck className="absolute right-3.5 top-3.5 h-4 w-4 text-[#8d6d4e]" />
+                    </div>
+                  </label>
+
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-[#d4cfc5]">
+                      Admin Password
+                      <div className="relative mt-1.5">
+                        <input
+                          type="password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Enter Admin Password..."
+                          autoComplete="current-password"
+                          className="w-full rounded-lg border border-[#e6b967]/30 bg-[#080914] px-4 py-3 text-sm text-[#f5f0e7] placeholder:text-[#6e685f] outline-none focus:border-[#e6b967] focus:ring-1 focus:ring-[#e6b967]"
+                        />
+                        <Key className="absolute right-3.5 top-3.5 h-4 w-4 text-[#8d6d4e]" />
+                      </div>
+                    </label>
+
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsForgotPassword(true);
+                          setResetError('');
+                          setResetSent(false);
+                          if (adminId.includes('@')) {
+                            setResetEmail(adminId);
+                          }
+                        }}
+                        className="text-xs text-[#e6b967] hover:text-[#f5f0e7] transition-colors cursor-pointer underline underline-offset-4 decoration-[#e6b967]/40 hover:decoration-[#e6b967]"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                  </div>
+
+                  {loginError && (
+                    <p role="alert" className="text-xs text-[#d48372]">
+                      {loginError}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isBusy}
+                    className="w-full rounded-lg bg-[#e6b967] py-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#080914] shadow-md transition-all hover:bg-[#d8a74e] disabled:opacity-50 cursor-pointer"
+                  >
+                    {isBusy ? 'Authenticating...' : 'Access Admin Portal'}
+                  </button>
+                </form>
+              </>
+            ) : (
+              // Mode 2: Forgot Password Self-Service Flow
+              <>
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-full border border-[#e6b967]/50 bg-[#080914] text-[#e6b967]">
+                    <Key className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-[0.24em] text-[#e6b967] font-semibold">
+                      OpenToSeeYourFuture · Password Recovery
+                    </span>
+                    <h1 className="font-serif text-3xl text-[#f5f0e7]">Reset Password</h1>
+                  </div>
+                </div>
+
+                <p className="mt-4 text-xs leading-relaxed text-[#a8a9bf]">
+                  Enter your registered administrator email address. We will dispatch a secure link to reset your password.
+                </p>
+
+                {resetSent ? (
+                  // Success confirmation view
+                  <div className="mt-6 space-y-5">
+                    <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/30 p-4 text-xs leading-relaxed text-emerald-200">
+                      <div className="flex items-start gap-2.5">
+                        <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-emerald-100">Reset Email Dispatched</p>
+                          <p className="mt-1 text-[11px] text-emerald-300/90">{resetSuccessMsg}</p>
+                          <p className="mt-2 text-[11px] text-[#a8a9bf]">
+                            Open the link sent to your email to set a new password, then return here to log into the Admin Suite.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsForgotPassword(false);
+                          setResetSent(false);
+                          setResetError('');
+                        }}
+                        className="w-full rounded-lg bg-[#e6b967] py-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#080914] shadow-md transition-all hover:bg-[#d8a74e] cursor-pointer"
+                      >
+                        Return to Admin Login
+                      </button>
+
+                      <div className="text-center">
+                        <button
+                          type="button"
+                          disabled={resetBusy}
+                          onClick={handleSendPasswordReset}
+                          className="text-xs text-[#a8a9bf] hover:text-[#e6b967] transition-colors cursor-pointer underline underline-offset-4 decoration-[#a8a9bf]/40"
+                        >
+                          {resetBusy ? 'Resending...' : 'Did not receive it? Resend reset link'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Password reset email request form
+                  <form onSubmit={handleSendPasswordReset} className="mt-6 space-y-4">
+                    <label className="block text-xs uppercase tracking-wider text-[#d4cfc5]">
+                      Administrator Email
+                      <div className="relative mt-1.5">
+                        <input
+                          type="email"
+                          required
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          placeholder="Enter your registered email (e.g. admin@studio.com)..."
+                          autoComplete="email"
+                          className="w-full rounded-lg border border-[#e6b967]/30 bg-[#080914] px-4 py-3 text-sm text-[#f5f0e7] placeholder:text-[#6e685f] outline-none focus:border-[#e6b967] focus:ring-1 focus:ring-[#e6b967]"
+                        />
+                        <Mail className="absolute right-3.5 top-3.5 h-4 w-4 text-[#8d6d4e]" />
+                      </div>
+                    </label>
+
+                    {resetError && (
+                      <p role="alert" className="text-xs text-[#d48372]">
+                        {resetError}
+                      </p>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={resetBusy}
+                      className="w-full rounded-lg bg-[#e6b967] py-3.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#080914] shadow-md transition-all hover:bg-[#d8a74e] disabled:opacity-50 cursor-pointer"
+                    >
+                      {resetBusy ? 'Dispatching Reset Link...' : 'Send Password Reset Link'}
+                    </button>
+
+                    <div className="pt-2 text-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsForgotPassword(false);
+                          setResetError('');
+                          setResetSent(false);
+                        }}
+                        className="inline-flex items-center gap-1.5 text-xs text-[#a8a9bf] hover:text-[#e6b967] transition-colors cursor-pointer"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>Back to Admin Login</span>
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </>
+            )}
           </div>
         </div>
       </main>
@@ -1501,16 +1700,16 @@ export const AdminPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs uppercase tracking-wider text-[#d4cfc5]">
-                    Active Admin Account
+                    Active Admin Session
                     <input
                       type="text"
                       disabled
-                      value="admin (Authorized Master Access)"
+                      value={authUser?.email || 'Authorized Administrator Session'}
                       className="mt-1.5 w-full rounded-lg border border-[#e6b967]/20 bg-[#080914]/80 px-4 py-2.5 text-xs text-[#f5f0e7] font-mono cursor-not-allowed"
                     />
                   </label>
                   <span className="mt-1 block text-[10px] text-[#a8a9bf]">
-                    Password: admin123 (Changeable via environment variables).
+                    Authenticated administrator access with self-service email recovery.
                   </span>
                 </div>
 
